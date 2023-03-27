@@ -67,14 +67,4 @@ class RolesRelationManager extends RelationManager
                 //
             ]);
     }
-
-    public function afterSave(): void
-    {
-        logger(__METHOD__);
-        if (! is_a($this->record, Utils::getRoleModel())) {
-            return;
-        }
-
-        FilamentAuthenticate::clearPermissionCache();
-    }
 }

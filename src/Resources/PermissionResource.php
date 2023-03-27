@@ -7,6 +7,7 @@ use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
@@ -29,7 +30,9 @@ class PermissionResource extends Resource
                                 ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                                 ->default(config('auth.defaults.guard')),
 
-                            Forms\Components\TextInput::make('http_path')
+                            Forms\Components\Select::make('http_path')
+                                ->options(FilamentAuthenticate::allRoutes())
+                                ->searchable()
                                 ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
 
                             // Forms\Components\BelongsToManyMultiSelect::make('roles')

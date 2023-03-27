@@ -4,6 +4,7 @@ namespace SolutionForest\FilamentAccessManagement;
 
 use Carbon\Carbon;
 use Filament\PluginServiceProvider;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
@@ -52,11 +53,10 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
     public function packageRegistered(): void
     {
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
-            return new FilamentAccessManagement();
+            return app(FilamentAccessManagement::class);
         });
 
         Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
-        Config::set('permission.enable_wildcard_permission', true);
 
         // middleware
         foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {

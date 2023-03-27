@@ -30,7 +30,9 @@ class PermissionsRelationManager extends RelationManager
                         ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                         ->default(config('auth.defaults.guard')),
 
-                    Forms\Components\TextInput::make('http_path')
+                    Forms\Components\Select::make('http_path')
+                        ->options(FilamentAuthenticate::allRoutes())
+                        ->searchable()
                         ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
 
                 ]),
@@ -64,24 +66,31 @@ class PermissionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-                Tables\Actions\AttachAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
+                Tables\Actions\AttachAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
             ])
             ->actions([
-                Tables\Actions\DetachAction::make(),
+                Tables\Actions\DetachAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
             ])
             ->bulkActions([
-                Tables\Actions\DetachBulkAction::make(),
+                Tables\Actions\DetachBulkAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
             ]);
     }
 
-    public function afterSave(): void
+    protected static function afterSave(): void
     {
-        logger(__METHOD__);
-        if (! is_a($this->record, Utils::getPermissionModel())) {
-            return;
-        }
-
         FilamentAuthenticate::clearPermissionCache();
     }
 }

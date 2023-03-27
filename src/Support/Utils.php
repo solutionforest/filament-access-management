@@ -63,16 +63,16 @@ class Utils
         return config('permission.table_names.permissions');
     }
 
-    public static function getCacheTags(): array
+    public static function getCacheTag(): string
     {
-        return config('filament-access-management.cache.tags', []);
+        return config('filament-access-management.cache.tag', 'user_permissions');
     }
 
     public static function getUserPermissionCacheKey(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): string
     {
         $user ??= FilamentAuthenticate::user();
 
-        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache').$user->getAuthIdentifier();
+        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache') .'_' . $user->getAuthIdentifier();
     }
 
     public static function getUserPermissionCacheExpirationTime(): \DateInterval|int
@@ -101,6 +101,6 @@ class Utils
             $path = (string) Str::of($path)->beforeLast('/');
         }
 
-        return Str::is($path, $pattern);
+        return Str::is($path, $pattern) || Str::of($pattern)->replace('*', '')->is($path);
     }
 }

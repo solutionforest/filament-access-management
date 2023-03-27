@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array createAdminPermission()
  * @method static array createPermissions()
  * @method static bool shouldPassThrough(string|Request $request)
+ * @method static array allRoutes()
  *
  * @see \SolutionForest\FilamentAccessManagement\FilamentAccessManagement
  */

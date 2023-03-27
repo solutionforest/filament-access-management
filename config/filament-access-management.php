@@ -65,10 +65,7 @@ return [
         'permissions.delete' => '/admin/permissions/delete',
     ],
     'cache' => [
-        'store' => 'array',
-        'tags' => [
-            'user_permissions',
-        ],
+        'tag' => 'user_permissions',
         'user_permissions' => [
             /*
             * By default all permissions are cached for 24 hours to speed up performance.
@@ -79,7 +76,7 @@ return [
 
             /*
             * The cache key used to store all permissions.
-            */
+        */
 
             'key_prefix' => 'user_spatie.permission.cache',
 

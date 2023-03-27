@@ -7,29 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Spatie\Permission\PermissionRegistrar;
 
 class FilamentAccessManagement
 {
-    /** @var \Illuminate\Contracts\Cache\Repository */
-    protected static $cache;
-
-    public function __construct()
-    {
-        $this->initializeCache();
-    }
-
-    public function initializeCache()
-    {
-        static::$cache = $this->getCacheStoreFromConfig();
-    }
-
-    protected function getCacheStoreFromConfig()
-    {
-        return Cache::store(config('filament-access-management-cache.store', 'array'));
-    }
-
     /**
      * Get user model.
      */
@@ -50,21 +34,20 @@ class FilamentAccessManagement
     {
         $user ??= static::user();
 
-        $cacheTags = self::$cache->tags(Utils::getCacheTags());
-
-        $cached = $cacheTags->get(Utils::getUserPermissionCacheKey($user));
-
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        $cacheTags->put(
+        return Cache::remember(
             Utils::getUserPermissionCacheKey($user),
-            method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect(),
-            Utils::getUserPermissionCacheExpirationTime()
-        );
+            Utils::getUserPermissionCacheExpirationTime(),
+            function () use ($user) {
+                $tags = Cache::get(Utils::getCacheTag());
+                if (is_null($tags)) {
+                    $tags = [];
+                }
+                $tags = array_unique(array_merge($tags, [Utils::getUserPermissionCacheKey($user)]));
+                Cache::forever(Utils::getCacheTag(), $tags);
 
-        return $cacheTags->get(Utils::getUserPermissionCacheKey($user));
+                return method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect();
+            }
+        );
     }
 
     public static function clearPermissionCache(): void
@@ -73,7 +56,11 @@ class FilamentAccessManagement
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Custom cache
-        self::$cache->tags(Utils::getCacheTags())->flush();
+        if ($tags = Cache::get(Utils::getCacheTag())) {
+            if (is_array($tags)) {
+                collect($tags)->each(fn ($tag) => Cache::forget($tag));
+            }
+        }
     }
 
     public static function createAdminRole(): Model
@@ -138,5 +125,41 @@ class FilamentAccessManagement
         }
 
         return false;
+    }
+
+    public static function allRoutes(): array
+    {
+        $prefix = trim(config('filament.path'), '/');
+
+        $container = collect();
+
+        $routes = collect(app('router')->getRoutes())->map(function ($route) use ($prefix, $container) {
+            if (! Str::startsWith($uri = $route->uri(), $prefix) && $prefix && $prefix !== '/') {
+                return;
+            }
+
+            if (! Str::contains($uri, '{')) {
+                $route = Str::replaceFirst($prefix, '', $uri.'*');
+
+                if ($route !== '*') {
+                    $container->push($route);
+                }
+            }
+
+            return Str::replaceFirst($prefix, '', preg_replace('/{.*}+/', '*', $uri));
+        });
+
+        $except = [
+            '/error*',
+            '/login*'
+        ];
+
+        return $container
+            ->merge($routes)
+            ->filter(fn ($path) => filled($path) && ! Str::of($path)->is($except))
+            ->map(fn ($path) => admin_base_path($path))
+            ->sort()
+            ->keyBy(fn ($path) => $path)
+            ->all();
     }
 }

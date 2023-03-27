@@ -110,23 +110,9 @@ class Permission
      */
     public static function error()
     {
-        // abort(403);
-        //TODO
         if (Request::isAjaxRequest()) {
             abort(403);
         }
-
-        // $view = view('filament-access-management::errors.403', [
-        //     'message' => null,
-        // ]);
-
-        // return redirect()->route('filament.pages.error/{code}', [
-        //     'code' => 403
-        // ]);
-        // TODO
-        // $view = Pages\Error::make(403, trans('filament-access-management::filament-access-management.errors.deny'))->render();
-
-        // dd($view);
 
         throw new HttpResponseException(
             response()
@@ -153,11 +139,6 @@ class Permission
                 : ($user->has('roles') ? collect($user->roles)->pluck('name')->contains(Utils::getSuperAdminRoleName()) : false) ?? false;
     }
 
-    /**
-     * TODO: Cache user permissions. (Clear cache after update)
-     *
-     * @see \Spatie\Permission\PermissionRegistrar
-     */
     private static function checkPathPermission(string $path, $user = null)
     {
         if (FilamentAuthenticate::shouldPassThrough($path)) {
@@ -165,7 +146,14 @@ class Permission
         }
 
         $permissions = FilamentAuthenticate::userPermissions($user)
-            ->filter(fn ($permission) => ! empty($permission->http_path) && Utils::matchRequestPath($permission->http_path, admin_base_path($path)))
+            ->filter(function ($permission) use ($path) {
+                if (empty($permission->http_path)) {
+                    return false;
+                }
+                $pattern = trim($permission->http_path, '/');
+                $current = trim(admin_base_path($path), '/');
+                return Utils::matchRequestPath($pattern, $current);
+            })
             ->values();
 
         if ($permissions->isNotEmpty()) {

@@ -7,6 +7,8 @@ use Filament\Resources\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Table;
 use Filament\Tables;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class RolesRelationManager extends RelationManager
 {
@@ -59,8 +61,14 @@ class RolesRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-                Tables\Actions\AttachAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
+                Tables\Actions\AttachAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
             ])
             ->actions([
                 Tables\Actions\DetachAction::make(),
@@ -68,5 +76,11 @@ class RolesRelationManager extends RelationManager
             ->bulkActions([
                 Tables\Actions\DetachBulkAction::make(),
             ]);
+    }
+
+    protected static function afterSave(): void
+    {
+
+        FilamentAuthenticate::clearPermissionCache();
     }
 }

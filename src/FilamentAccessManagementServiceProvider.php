@@ -27,6 +27,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
     {
         return [
             Commands\InstallCommand::class,
+            Commands\MakeSuperAdminUser::class,
         ];
     }
 

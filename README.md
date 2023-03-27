@@ -5,87 +5,120 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/solution-forest/filament-access-management/Check%20&%20fix%20styling?label=code%20style)](https://github.com/solution-forest/filament-access-management/actions?query=workflow%3A"Check+%26+fix+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/solution-forest/filament-access-management.svg?style=flat-square)](https://packagist.org/packages/solution-forest/filament-access-management)
 
-<!--delete-->
----
-This repo can be used to scaffold a Filament plugin. Follow these steps to get started:
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this filament-access-management.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Make something great!
----
-<!--/delete-->
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+This is an authentication plugin for Filament Admin with Laravel-permission
 
 ## Installation
 
-You can install the package via composer:
+1. You can install the package via composer:
+    ```bash
+    composer require solution-forest/filament-access-management
+    ```
 
-```bash
-composer require solution-forest/filament-access-management
-```
+2. **Clear your config cache**:
+   ```bash
+    php artisan optimize:clear
+    # or
+    php artisan config:clear
+   ```
+3. Then execute the following commands:
+   ```bash
+   php artisan filament-access-management:install
+   ```
+    This command will automatically run migration, publish `config/permission.php` and `config/filament-access-management.php` Configuration files, and create a **Super Admin User**:
+    ```bash
+    Email: 'admin@' . Str::of(config('app.name'))->slug() . '.com'
+    Password: admin
+    ```
 
-You can publish and run the migrations with:
+4. In your config/app.php place this code in you providers section
+    ``` php
+    'providers' => [
 
-```bash
-php artisan vendor:publish --tag="filament-access-management-migrations"
-php artisan migrate
-```
+        ...
 
-You can publish the config file with:
+        /*
+            * Package Service Providers...
+            */
+        \SolutionForest\FilamentAccessManagement\FilamentAuthServiceProvider::class,
 
-```bash
-php artisan vendor:publish --tag="filament-access-management-config"
-```
+        ...
 
-Optionally, you can publish the views using
+    ],
+    ```
+5. Add the necessary trait to your User model:
+
+    ```php
+
+    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
+
+    class User extends Authenticatable
+    {
+        use FilamentUser;
+    }
+    ```
+
+## Publish View and Migrations
+
+You can publish the views, lang and migrations with:
 
 ```bash
 php artisan vendor:publish --tag="filament-access-management-views"
+
+php artisan vendor:publish --tag="filament-access-management-translations"
+
+php artisan vendor:publish --tag="filament-access-management-migrations"
 ```
 
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
+## Migration
 
 ```bash
-
-    'providers' => [
-        /*
-         * Package Service Providers...
-         */
-        \SolutionForest\FilamentAccessManagement\FilamentAuthServiceProvider::class,
-        
-    ],
-```
-
-User Model
-
-```bash
-
-use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
-
-class User extends Authenticatable
-{
-    use FilamentUser;
-}
+php artisan migrate
 ```
 
 ## Usage
 
-```php
-$filament-access-management = new SolutionForest\FilamentAccessManagement();
-echo $filament-access-management->echoPhrase('Hello, SolutionForest!');
+Create super admin user:
+
+```bash
+
+php artisan make:super-admin-user
+
 ```
 
+Check permission:
+```bash
+
+# Check by permission's name
+\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::check($name)
+
+# Check by http_path
+\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::checkPermission($path)
+
+```
+
+Get current user:
+``` bash
+
+\SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate::user();
+
+```
+
+
+<!--delete-->
 ## Testing
 
 ```bash
 composer test
 ```
+<!--/delete-->
+
+![image](./assets/images/user_1.png)
+![image](./assets/images/user_2.png)
+![image](./assets/images/role_1.png)
+![image](./assets/images/role_2.png)
+![image](./assets/images/permission_1.png)
+![image](./assets/images/permission_2.png)
 
 ## Changelog
 

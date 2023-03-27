@@ -151,7 +151,7 @@ class FilamentAccessManagement
 
         $except = [
             '/error*',
-            '/login*'
+            '/login*',
         ];
 
         return $container

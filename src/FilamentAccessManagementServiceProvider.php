@@ -4,7 +4,6 @@ namespace SolutionForest\FilamentAccessManagement;
 
 use Carbon\Carbon;
 use Filament\PluginServiceProvider;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;

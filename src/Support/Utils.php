@@ -72,7 +72,7 @@ class Utils
     {
         $user ??= FilamentAuthenticate::user();
 
-        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache') .'_' . $user->getAuthIdentifier();
+        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache').'_'.$user->getAuthIdentifier();
     }
 
     public static function getUserPermissionCacheExpirationTime(): \DateInterval|int

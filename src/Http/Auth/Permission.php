@@ -6,7 +6,6 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
-use SolutionForest\FilamentAccessManagement\Pages;
 use SolutionForest\FilamentAccessManagement\Support\Request;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
@@ -152,6 +151,7 @@ class Permission
                 }
                 $pattern = trim($permission->http_path, '/');
                 $current = trim(admin_base_path($path), '/');
+
                 return Utils::matchRequestPath($pattern, $current);
             })
             ->values();

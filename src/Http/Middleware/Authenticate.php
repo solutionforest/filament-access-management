@@ -22,7 +22,6 @@ class Authenticate extends Middleware
         if (! Permission::checkPermission($request->route()->uri())) {
             Permission::error();
         }
-
     }
 
     protected function redirectTo($request): string

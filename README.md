@@ -104,15 +104,6 @@ Get current user:
 
 ```
 
-
-<!--delete-->
-## Testing
-
-```bash
-composer test
-```
-<!--/delete-->
-
 ![image](./assets/images/user_1.png)
 ![image](./assets/images/user_2.png)
 ![image](./assets/images/role_1.png)
@@ -134,7 +125,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Carly](https://github.com/n/a)
 - [All Contributors](../../contributors)
 
 ## License

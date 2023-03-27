@@ -2,14 +2,9 @@
 
 namespace SolutionForest\FilamentAccessManagement\Http\Middleware;
 
-use Filament\Facades\Filament;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class Authenticate extends Middleware
 {
@@ -25,11 +20,9 @@ class Authenticate extends Middleware
         }
 
         if (! Permission::checkPermission($request->route()->uri())) {
-
             Permission::error();
         }
 
-        return;
     }
 
     protected function redirectTo($request): string

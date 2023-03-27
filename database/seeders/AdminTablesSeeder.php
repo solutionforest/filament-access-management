@@ -2,7 +2,6 @@
 
 namespace SolutionForest\FilamentAccessManagement\Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,11 +22,11 @@ class AdminTablesSeeder extends Seeder
         // create user
         Utils::getUserModel()::truncate();
         $adminUser = Utils::getUserModel()::create([
-            'name'              => 'admin',
-            'email'             => 'admin@'.Str::of(config('app.name'))->slug().'.com',
+            'name' => 'admin',
+            'email' => 'admin@'.Str::of(config('app.name'))->slug().'.com',
             'email_verified_at' => $now,
-            'password'          => bcrypt('admin'),
-            'created_at'        => $now,
+            'password' => bcrypt('admin'),
+            'created_at' => $now,
         ]);
 
         // create role

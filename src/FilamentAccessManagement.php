@@ -2,19 +2,12 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
-use Closure;
-use Filament\Facades\Filament;
-use Filament\Navigation\NavigationBuilder;
-use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use SolutionForest\FilamentAccessManagement\Support\Request as RequestHelper;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class FilamentAccessManagement
@@ -72,7 +65,6 @@ class FilamentAccessManagement
         );
 
         return $cacheTags->get(Utils::getUserPermissionCacheKey($user));
-
     }
 
     public static function clearPermissionCache(): void
@@ -95,6 +87,7 @@ class FilamentAccessManagement
     public static function createAdminPermission(): array
     {
         $permissions = Utils::getAdminPermissions();
+
         return array_map(function ($httpPath, $name) {
             return Utils::getPermissionModel()::firstOrCreate(
                 ['name' => $name],
@@ -106,6 +99,7 @@ class FilamentAccessManagement
     public static function createPermissions(): array
     {
         $permissions = Utils::getPermissions();
+
         return array_map(function ($httpPath, $name) {
             return Utils::getPermissionModel()::firstOrCreate(
                 ['name' => $name],
@@ -124,13 +118,12 @@ class FilamentAccessManagement
             ['/', '/error*']
         ));
 
-        $current = is_string($request)? $request : $request->path();
+        $current = is_string($request) ? $request : $request->path();
 
         foreach ($excepts as $except) {
-
             $except = admin_base_path($except);
 
-            if (!is_string($request)) {
+            if (! is_string($request)) {
                 $except = trim($except, '/');
                 if ($request->is($except)) {
                     return true;

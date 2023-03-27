@@ -42,7 +42,6 @@ if (! function_exists('admin_base_path')) {
         $prefix = ($prefix == '/') ? '' : $prefix;
 
         if (filter_var($path, FILTER_VALIDATE_URL)) {
-
             $path = parse_url($path, PHP_URL_PATH);
         }
 

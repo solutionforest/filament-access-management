@@ -2,9 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
 
 class ListRoles extends ListRecords
 {

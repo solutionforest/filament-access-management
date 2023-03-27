@@ -3,18 +3,13 @@
 namespace SolutionForest\FilamentAccessManagement\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
-use SolutionForest\FilamentAccessManagement\FilamentAccessManagementServiceProvider;
 use SolutionForest\FilamentAccessManagement\Database\Seeders;
-use SolutionForest\FilamentAccessManagement\Models;
-use SolutionForest\FilamentAccessManagement\Support\Utils;
-
-use function PHPSTORM_META\override;
+use SolutionForest\FilamentAccessManagement\FilamentAccessManagementServiceProvider;
 
 class InstallCommand extends Command
 {
-    protected $signature = "filament-access-management:install";
+    protected $signature = 'filament-access-management:install';
 
     public $description = 'Install Filament Access Management';
 
@@ -39,7 +34,7 @@ class InstallCommand extends Command
         // Create tables and its records
         $this->initDatabase();
 
-        $this->info("Installed");
+        $this->info('Installed');
 
         return static::SUCCESS;
     }
@@ -61,7 +56,7 @@ class InstallCommand extends Command
     {
         $params = [
             '--provider' => FilamentAccessManagementServiceProvider::class,
-            '--tag' => "filament-access-management-config"
+            '--tag' => 'filament-access-management-config',
         ];
 
         if ($forcePublish === true) {
@@ -75,7 +70,7 @@ class InstallCommand extends Command
     {
         $params = [
             '--provider' => FilamentAccessManagementServiceProvider::class,
-            '--tag' => "filament-access-management-migrations"
+            '--tag' => 'filament-access-management-migrations',
         ];
 
         $this->call('vendor:publish', $params);

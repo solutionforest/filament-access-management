@@ -3,7 +3,6 @@
 namespace SolutionForest\FilamentAccessManagement\Http\Auth;
 
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
@@ -46,7 +45,6 @@ class Permission
      * Check permission by paths.
      *
      * @param  string|array|Arrayable  $paths
-     *
      * @return bool|array<string,bool>
      */
     public static function checkPermission($paths)
@@ -58,7 +56,6 @@ class Permission
         $user = FilamentAuthenticate::user();
 
         if (is_string($paths)) {
-
             if (self::checkPathPermission($paths, $user)) {
                 return true;
             }
@@ -123,7 +120,6 @@ class Permission
         //     'message' => null,
         // ]);
 
-
         // return redirect()->route('filament.pages.error/{code}', [
         //     'code' => 403
         // ]);
@@ -135,7 +131,7 @@ class Permission
         throw new HttpResponseException(
             response()
             ->redirectToRoute('filament.pages.error', [
-                'code' => 403
+                'code' => 403,
             ])
         );
     }
@@ -151,6 +147,7 @@ class Permission
             return false;
         }
         $user = FilamentAuthenticate::user();
+
         return method_exists($user, 'isSuperAdmin')
                 ? $user->isSuperAdmin()
                 : ($user->has('roles') ? collect($user->roles)->pluck('name')->contains(Utils::getSuperAdminRoleName()) : false) ?? false;
@@ -158,6 +155,7 @@ class Permission
 
     /**
      * TODO: Cache user permissions. (Clear cache after update)
+     *
      * @see \Spatie\Permission\PermissionRegistrar
      */
     private static function checkPathPermission(string $path, $user = null)
@@ -171,9 +169,9 @@ class Permission
             ->values();
 
         if ($permissions->isNotEmpty()) {
-
             return true;
         }
+
         return false;
     }
 }

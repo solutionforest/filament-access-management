@@ -3,14 +3,10 @@
 namespace SolutionForest\FilamentAccessManagement;
 
 use Carbon\Carbon;
-use Filament\Facades\Filament;
 use Filament\PluginServiceProvider;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
-use Livewire\Livewire;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use SolutionForest\FilamentAccessManagement\Pages;
 use Spatie\LaravelPackageTools\Package;
 
 class FilamentAccessManagementServiceProvider extends PluginServiceProvider
@@ -107,7 +103,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $filePath => $this->generateMigrationName(
                     $fileName,
                     $now
-            ), ], "{$this->package->shortName()}-migrations");
+                ), ], "{$this->package->shortName()}-migrations");
 
             if ($this->package->runsMigrations) {
                 $this->loadMigrationsFrom($filePath);
@@ -116,5 +112,4 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
         parent::packageBooted();
     }
-
 }

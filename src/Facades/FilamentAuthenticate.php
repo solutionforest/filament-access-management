@@ -5,10 +5,8 @@ namespace SolutionForest\FilamentAccessManagement\Facades;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static Authenticatable user()

@@ -2,12 +2,10 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 
+use Filament\Resources\Pages\CreateRecord;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource;
-use Filament\Pages\Actions;
-use Filament\Resources\Pages\CreateRecord;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
-use Spatie\Permission\PermissionRegistrar;
 
 class CreatePermission extends CreateRecord
 {

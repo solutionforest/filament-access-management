@@ -25,6 +25,7 @@ class Utils
     public static function getAdminPermissions(): array
     {
         $permissionNames = config('filament-access-management.roles.admin.role_permissions', []);
+
         return array_filter(
             self::getPermissions(),
             fn ($name) => in_array($name, $permissionNames),
@@ -51,6 +52,7 @@ class Utils
     {
         return config('auth.providers.users.table');
     }
+
     public static function getRoleTableName(): ?string
     {
         return config('permission.table_names.roles');
@@ -70,7 +72,7 @@ class Utils
     {
         $user ??= FilamentAuthenticate::user();
 
-        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache'). $user->getAuthIdentifier();
+        return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache').$user->getAuthIdentifier();
     }
 
     public static function getUserPermissionCacheExpirationTime(): \DateInterval|int
@@ -90,15 +92,13 @@ class Utils
         $pattern = trim($pattern, '/');
         $path = trim($path, '/');
 
-
         if (! Str::contains($pattern, '*')) {
             return $path === $pattern;
         }
 
         if (Str::endsWith($path, ['/*'])) {
-
-            $pattern = (string)Str::of($pattern)->beforeLast('/');
-            $path = (string)Str::of($path)->beforeLast('/');
+            $pattern = (string) Str::of($pattern)->beforeLast('/');
+            $path = (string) Str::of($path)->beforeLast('/');
         }
 
         return Str::is($path, $pattern);

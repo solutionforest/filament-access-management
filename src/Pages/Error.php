@@ -3,9 +3,7 @@
 namespace SolutionForest\FilamentAccessManagement\Pages;
 
 use Closure;
-use Filament\Facades\Filament;
 use Filament\Pages\Page;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
 
 class Error extends Page
@@ -29,7 +27,7 @@ class Error extends Page
         return function () {
             $slug = static::getSlug();
 
-            Route::get($slug. '/{code}', static::class)
+            Route::get($slug.'/{code}', static::class)
                 ->name($slug);
         };
     }
@@ -43,7 +41,6 @@ class Error extends Page
     {
         return false;
     }
-
 
     protected function getViewData(): array
     {

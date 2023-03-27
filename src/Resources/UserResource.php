@@ -2,16 +2,14 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use Illuminate\Support\Facades\Hash;
-use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class UserResource extends Resource

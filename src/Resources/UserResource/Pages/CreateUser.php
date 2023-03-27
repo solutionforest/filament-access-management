@@ -2,9 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\UserResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 
 class CreateUser extends CreateRecord
 {

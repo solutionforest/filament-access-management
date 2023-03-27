@@ -2,9 +2,9 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 
 class ListUsers extends ListRecords
 {

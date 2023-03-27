@@ -2,9 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
 
 class ViewRole extends ViewRecord
 {

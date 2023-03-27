@@ -2,12 +2,10 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 
+use Filament\Resources\Pages\EditRecord;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource;
-use Filament\Pages\Actions;
-use Filament\Resources\Pages\EditRecord;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
-use Spatie\Permission\PermissionRegistrar;
 
 class EditPermission extends EditRecord
 {

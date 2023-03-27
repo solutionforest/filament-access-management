@@ -2,20 +2,17 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class PermissionResource extends Resource
 {
-
     public static function form(Form $form): Form
     {
         return $form
@@ -99,6 +96,7 @@ class PermissionResource extends Resource
     {
         return config('filament-access-management.navigationIcon.permission') ?? parent::getNavigationIcon();
     }
+
     public static function getModel(): string
     {
         return Utils::getPermissionModel() ?? parent::getModel();

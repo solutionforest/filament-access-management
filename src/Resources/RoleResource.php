@@ -2,26 +2,17 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use Closure;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use SolutionForest\FilamentAccessManagement\Facades\FilamentAccessManagement;
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers;
 use Filament\Forms;
 use Filament\Resources\Form;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Resources\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Database\Eloquent\Model;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class RoleResource extends Resource
 {
-
     public static function form(Form $form): Form
     {
         return $form
@@ -92,6 +83,7 @@ class RoleResource extends Resource
             'view' => Pages\ViewRole::route('/{record}'),
         ];
     }
+
     protected static function getNavigationIcon(): string
     {
         return config('filament-access-management.navigationIconrole') ?? parent::getNavigationIcon();

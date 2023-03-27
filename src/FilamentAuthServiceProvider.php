@@ -2,22 +2,13 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
-use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
-use Filament\Pages\Page;
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
-use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
-use SolutionForest\FilamentAccessManagement\Http\Middleware;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use Spatie\LaravelPackageTools\Package;
 
 class FilamentAuthServiceProvider extends ServiceProvider
 {
@@ -47,10 +38,8 @@ class FilamentAuthServiceProvider extends ServiceProvider
     protected function configureNavigation()
     {
         if (! Permission::isSuperAdmin()) {
-
             $filamentNavigation = Filament::getNavigation();
             Filament::navigation(function (NavigationBuilder $builder) use ($filamentNavigation): NavigationBuilder {
-
                 $groups = $filamentNavigation;
 
                 $checkResult = Permission::checkPermission(
@@ -68,9 +57,7 @@ class FilamentAuthServiceProvider extends ServiceProvider
 
                     $checkResult = array_keys(array_filter($checkResult));
                     foreach ($filamentNavigation as $navGroupKey => $navGroup) {
-
                         if ($navGroup instanceof NavigationGroup) {
-
                             $newNavGroup = $navGroup;
                             $newNavGroup->items(
                                 collect($navGroup->getItems())
@@ -80,7 +67,6 @@ class FilamentAuthServiceProvider extends ServiceProvider
                             );
 
                             if (count($newNavGroup->getItems()) > 0) {
-
                                 $groups[$navGroupKey] = $newNavGroup;
                             }
                         }
@@ -105,7 +91,6 @@ class FilamentAuthServiceProvider extends ServiceProvider
 
                     return ! Permission::checkPermission($url);
                 });
-
             }
         });
     }

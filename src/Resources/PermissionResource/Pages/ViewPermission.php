@@ -2,9 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\PermissionResource;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource;
 
 class ViewPermission extends ViewRecord
 {

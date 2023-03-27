@@ -3,7 +3,6 @@
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 
 use Filament\Forms;
-use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,7 +12,6 @@ use SolutionForest\FilamentAccessManagement\Support\Utils;
 class ListPermissions extends ListRecords
 {
     protected static string $resource = PermissionResource::class;
-
 
     protected function getTableBulkActions(): array
     {

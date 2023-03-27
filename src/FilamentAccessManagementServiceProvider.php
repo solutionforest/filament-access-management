@@ -3,39 +3,83 @@
 namespace SolutionForest\FilamentAccessManagement;
 
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\PluginServiceProvider;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Config;
-use SolutionForest\FilamentAccessManagement\Http\Middleware;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Livewire;
+use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
+use SolutionForest\FilamentAccessManagement\Pages;
 use Spatie\LaravelPackageTools\Package;
 
 class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 {
     public static string $name = 'filament-access-management';
 
-    protected array $widgets = [
-        // CustomWidget::class,
-    ];
+    public function configurePackage(Package $package): void
+    {
+        $package->name(static::$name)
+            ->hasConfigFile()
+            ->hasViews()
+            ->hasTranslations()
+            ->hasMigrations($this->getMigrations())
+            ->hasCommands($this->getCommands());
+    }
 
-    protected array $styles = [
-        // 'filament-access-management' => __DIR__.'/../resources/dist/filament-access-management.css',
-    ];
+    protected function getCommands(): array
+    {
+        return [
+            Commands\InstallCommand::class,
+        ];
+    }
 
-    protected array $scripts = [
-        // 'filament-access-management' => __DIR__.'/../resources/dist/filament-access-management.js',
-    ];
-
-    // protected array $beforeCoreScripts = [
-    //     'plugin-filament-access-management' => __DIR__ . '/../resources/dist/filament-access-management.js',
-    // ];
+    protected function getMigrations(): array
+    {
+        return [
+            'create_filament_admin_tables',
+        ];
+    }
 
     protected function getResources(): array
     {
-        return config( 'filament-access-management.resources', []);
+        return array_values(config('filament-access-management.resources', []));
     }
 
     protected function getPages(): array
     {
-        return config('filament-access-management.pages', []);
+        return array_merge([
+            Pages\Error::class,
+        ]);
+    }
+
+    public function packageRegistered(): void
+    {
+        $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
+            return new FilamentAccessManagement();
+        });
+
+        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+        Config::set('permission.enable_wildcard_permission', true);
+
+        // middleware
+        foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
+            Config::push('filament.middleware.base', $middleware);
+        }
+        parent::packageRegistered();
+    }
+
+    public function bootingPackage(): void
+    {
+        Gate::before(function ($user, $ability) {
+            if (Permission::isSuperAdmin()) {
+                return true;
+            }
+
+            return null;
+        });
+
+        parent::bootingPackage();
     }
 
     public function packageBooted(): void
@@ -45,9 +89,10 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
         ];
 
         $migrationFiles = [
-            __DIR__.'/../vendor/spatie/laravel-permission/database/migrations/create_permission_tables.php.stub' => 'create_permission_tables.php',
+            //
         ];
 
+        // publish config
         foreach ($configFiles as $filePath => $fileName) {
             $this->publishes([
                 $filePath => config_path($fileName),
@@ -56,6 +101,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
         $now = Carbon::now();
 
+        // publish migrations
         foreach ($migrationFiles as $filePath => $fileName) {
             $this->publishes([
                 $filePath => $this->generateMigrationName(
@@ -67,34 +113,8 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $this->loadMigrationsFrom($filePath);
             }
         }
+
+        parent::packageBooted();
     }
 
-    public function configurePackage(Package $package): void
-    {
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
-        Config::push('filament.middleware.base', Middleware\UserRoleMiddleware::class);
-
-        $package->name(static::$name)
-            ->hasConfigFile()
-            ->hasViews()
-            ->hasRoute('web')
-            ->hasTranslations()
-            ->hasMigrations($this->getMigrations())
-            ->hasCommands($this->getCommands());
-    }
-
-    protected function getMigrations(): array
-    {
-        return [
-            'update_users_table',
-        ];
-    }
-
-    protected function getCommands(): array
-    {
-        return [
-            Commands\InstallCommand::class,
-            Commands\MakeAdminUserCommand::class,
-        ];
-    }
 }

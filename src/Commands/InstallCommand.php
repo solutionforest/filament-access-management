@@ -6,6 +6,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use SolutionForest\FilamentAccessManagement\FilamentAccessManagementServiceProvider;
+use SolutionForest\FilamentAccessManagement\Database\Seeders;
+use SolutionForest\FilamentAccessManagement\Models;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
+
+use function PHPSTORM_META\override;
 
 class InstallCommand extends Command
 {
@@ -31,7 +36,8 @@ class InstallCommand extends Command
         // Migration files
         $this->publishMigrations();
 
-        $this->insertRecords();
+        // Create tables and its records
+        $this->initDatabase();
 
         $this->info("Installed");
 
@@ -75,7 +81,14 @@ class InstallCommand extends Command
         $this->call('vendor:publish', $params);
     }
 
-    private function insertRecords()
+    public function initDatabase()
     {
+        $this->call('migrate');
+
+        $params = [
+            '--class' => Seeders\AdminTablesSeeder::class,
+        ];
+
+        $this->call('db:seed', $params);
     }
 }

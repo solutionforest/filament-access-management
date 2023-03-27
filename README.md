@@ -51,6 +51,29 @@ return [
 ];
 ```
 
+```bash
+
+    'providers' => [
+        /*
+         * Package Service Providers...
+         */
+        \SolutionForest\FilamentAccessManagement\FilamentAuthServiceProvider::class,
+        
+    ],
+```
+
+User Model
+
+```bash
+
+use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
+
+class User extends Authenticatable
+{
+    use FilamentUser;
+}
+```
+
 ## Usage
 
 ```php

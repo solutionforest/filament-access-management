@@ -1,28 +1,96 @@
 <?php
 
-// config for SolutionForest/FilamentAccessManagement
+use SolutionForest\FilamentAccessManagement\Http\Middleware;
+use SolutionForest\FilamentAccessManagement\Models;
+use SolutionForest\FilamentAccessManagement\Resources;
+
 return [
-    'navigationIcon' => [
-        'User'                  => 'heroicon-o-user',
-        'Role'                  => 'heroicon-o-user-group',
-        'Permission'            => 'heroicon-o-lock-closed',
+    'auth' => [
+        'except' => [
+            '/',
+            '/login',
+            '/error*',
+        ],
     ],
-    'models' => [
-        'User'                  => \SolutionForest\FilamentAccessManagement\Models\User::class,
-        'Role'                  => \Spatie\Permission\Models\Role::class,
-        'Permission'            => \Spatie\Permission\Models\Permission::class,
+    'filament' => [
+        'middleware' => [
+            'base' => [
+                Middleware\Authenticate::class,
+            ]
+        ],
+        'permission' => [
+            'enable'            => true,
+        ],
+        'secure'                => false,
+    ],
+    'navigationIcon' => [
+        'user'                  => 'heroicon-o-user',
+        'role'                  => 'heroicon-o-user-group',
+        'permission'            => 'heroicon-o-lock-closed',
     ],
     'resources' => [
-        'UserResource'          => \SolutionForest\FilamentAccessManagement\Resources\UserResource::class,
-        'RoleResource'          => \SolutionForest\FilamentAccessManagement\Resources\RoleResource::class,
-        'PermissionResource'    => \SolutionForest\FilamentAccessManagement\Resources\PermissionResource::class,
+        'UserResource'          => Resources\UserResource::class,
+        'RoleResource'          => Resources\RoleResource::class,
+        'PermissionResource'    => Resources\PermissionResource::class,
     ],
     'roles' => [
         'admin' => [
-            'name'              => 'admin',
-        ],
+            'name'              => 'super-admin',
+            'role_permissions'  => [
+                'users.*',
+                'roles.*',
+                'permissions.*',
+            ]
+        ]
     ],
-    'table_names' => [
-        'users'                 => 'users',
+    'permissions' => [
+        'users.*'               => '/admin/users/*',
+        'users.viewAny'         => '/admin/users',
+        'users.view'            => '/admin/users/*',
+        'users.create'          => '/admin/users/create',
+        'users.update'          => '/admin/users/*/edit',
+        'users.delete'          => '/admin/users/delete',
+
+        'roles.*'               => '/admin/roles/*',
+        'roles.viewAny'         => '/admin/users',
+        'roles.view'            => '/admin/users/*',
+        'roles.create'          => '/admin/users/create',
+        'roles.update'          => '/admin/users/*/edit',
+        'roles.delete'          => '/admin/users/delete',
+
+        'permissions.*'         => '/admin/permissions/*',
+        'permissions.viewAny'   => '/admin/permissions',
+        'permissions.view'      => '/admin/permissions/*',
+        'permissions.create'    => '/admin/permissions/create',
+        'permissions.update'    => '/admin/permissions/*/edit',
+        'permissions.delete'    => '/admin/permissions/delete',
+    ],
+    'cache' => [
+        'store'                 => 'array',
+        'tags' => [
+            'user_permissions',
+        ],
+        'user_permissions' => [
+            /*
+            * By default all permissions are cached for 24 hours to speed up performance.
+            * When permissions or roles are updated the cache is flushed automatically.
+            */
+
+            'expiration_time'   => \DateInterval::createFromDateString('24 hours'),
+
+            /*
+            * The cache key used to store all permissions.
+            */
+
+            'key_prefix'        => 'user_spatie.permission.cache',
+
+            /*
+            * You may optionally indicate a specific cache driver to use for permission and
+            * role caching using any of the `store` drivers listed in the cache.php config
+            * file. Using 'default' here means to use the `default` set in cache.php.
+            */
+
+            'store'         => 'default',
+        ],
     ],
 ];

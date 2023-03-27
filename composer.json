@@ -43,8 +43,12 @@
     "autoload": {
         "psr-4": {
             "SolutionForest\\FilamentAccessManagement\\": "src",
-            "SolutionForest\\FilamentAccessManagement\\Database\\Factories\\": "database/factories"
-        }
+            "SolutionForest\\FilamentAccessManagement\\Database\\Factories\\": "database/factories",
+            "SolutionForest\\FilamentAccessManagement\\Database\\Seeders\\": "database/seeders"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

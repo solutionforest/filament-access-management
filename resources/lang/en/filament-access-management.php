@@ -25,6 +25,7 @@ return [
     'field.name'                    => 'Name',
     'field.permissions'             => 'Permissions',
     'field.roles'                   => 'Roles',
+    'field.http_path'               => 'HTTP Path',
 
     'field.created_at'              => 'Created At',
     'field.updated_at'              => 'Updated At',
@@ -52,4 +53,12 @@ return [
     'button.impersonate'            => "Impersonate User",
     'text.impersonating'            => 'Impersonating User: ',
     'text.impersonating.end'        => ' - End Impersonation ',
+
+    /*
+        |--------------------------------------------------------------------------
+        | Error Messages
+        |--------------------------------------------------------------------------
+    */
+    'errors.default'                => 'Error',
+    'errors.deny'                   => 'Deny',
 ];

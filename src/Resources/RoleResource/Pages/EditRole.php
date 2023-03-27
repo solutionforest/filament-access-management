@@ -2,18 +2,23 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
 
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\EditRecord;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Spatie\Permission\PermissionRegistrar;
 
 class EditRole extends EditRecord
 {
     protected static string $resource = RoleResource::class;
 
-    protected function getActions(): array
+    public function afterSave(): void
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        if (! is_a($this->record, Utils::getRoleModel())) {
+            return;
+        }
+
+        FilamentAuthenticate::clearPermissionCache();
     }
 }

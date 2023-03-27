@@ -39,7 +39,7 @@ class MakeSuperAdminUser extends Command
     {
         return [
             'name' => $this->validateInput(fn () => $this->options['name'] ?? $this->ask('Name'), 'name', ['required'], fn () => $this->options['name'] = null),
-            'email' => $this->validateInput(fn () => $this->options['email'] ?? $this->ask('Email address'), 'email', ['required', 'email', 'unique:' . $this->getUserModel()], fn () => $this->options['email'] = null),
+            'email' => $this->validateInput(fn () => $this->options['email'] ?? $this->ask('Email address'), 'email', ['required', 'email', 'unique:'.$this->getUserModel()], fn () => $this->options['email'] = null),
             'password' => Hash::make($this->validateInput(fn () => $this->options['password'] ?? $this->secret('Password'), 'password', ['required', 'min:8'], fn () => $this->options['password'] = null)),
         ];
     }
@@ -63,6 +63,6 @@ class MakeSuperAdminUser extends Command
 
     protected function sendSuccessMessage(Authenticatable $user): void
     {
-        $this->info('User '. ($user->getAttribute('email') ?? $user->getAttribute('username')) . ' Created !');
+        $this->info('User '.($user->getAttribute('email') ?? $user->getAttribute('username')).' Created !');
     }
 }

@@ -96,11 +96,15 @@ class Utils
             return $path === $pattern;
         }
 
-        if (Str::endsWith($pattern, ['/*']) && ! Str::endsWith($path, ['/create'])) {
+        if (Str::endsWith($pattern, ['/*'])) { // handle 'View' policy method
             $pattern = (string) Str::of($pattern)->beforeLast('/');
-            $path = (string) Str::of($path)->beforeLast('/');
+
+            if (! Str::endsWith($path, ['/create'])) { // except 'Create' policy method
+                $path = (string) Str::of($path)->beforeLast('/');
+            }
+
         }
 
-        return Str::is($path, $pattern) || Str::of($pattern)->replace('*', '')->is($path);
+        return Str::is($pattern, $path);
     }
 }

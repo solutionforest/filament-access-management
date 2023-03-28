@@ -102,7 +102,6 @@ class Utils
             if (! Str::endsWith($path, ['/create'])) { // except 'Create' policy method
                 $path = (string) Str::of($path)->beforeLast('/');
             }
-
         }
 
         return Str::is($pattern, $path);

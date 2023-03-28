@@ -44,6 +44,7 @@ trait FilamentUser
         if ($this->isSuperAdmin()) {
             return true;
         }
+
         return static::$canImpersonate;
     }
 }

@@ -48,21 +48,18 @@ return [
         'users.view' => '/admin/users/*',
         'users.create' => '/admin/users/create',
         'users.update' => '/admin/users/*/edit',
-        'users.delete' => '/admin/users/delete',
 
         'roles.*' => '/admin/roles*',
         'roles.viewAny' => '/admin/users',
         'roles.view' => '/admin/users/*',
         'roles.create' => '/admin/users/create',
         'roles.update' => '/admin/users/*/edit',
-        'roles.delete' => '/admin/users/delete',
 
         'permissions.*' => '/admin/permissions*',
         'permissions.viewAny' => '/admin/permissions',
         'permissions.view' => '/admin/permissions/*',
         'permissions.create' => '/admin/permissions/create',
         'permissions.update' => '/admin/permissions/*/edit',
-        'permissions.delete' => '/admin/permissions/delete',
     ],
     'cache' => [
         'tag' => 'user_permissions',

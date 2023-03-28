@@ -12,6 +12,8 @@ trait FilamentUser
 {
     use HasRoles;
 
+    protected static bool $canImpersonate = true;
+
     public function getTable()
     {
         return Utils::getUserTableName() ?? parent::getTable();
@@ -33,6 +35,15 @@ trait FilamentUser
 
     public function getCachedPermissions(): Collection
     {
-        return FilamentAuthenticate::userPermissions($this);
+        return
+        FilamentAuthenticate::userPermissions($this);
+    }
+
+    public function canImpersonate(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        return static::$canImpersonate;
     }
 }

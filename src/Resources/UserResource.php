@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use STS\FilamentImpersonate\Tables\Actions\Impersonate;
 
 class UserResource extends Resource
 {
@@ -97,6 +98,9 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
+            ])
+            ->prependActions([
+                Impersonate::make(),
             ]);
     }
 

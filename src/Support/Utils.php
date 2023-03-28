@@ -82,10 +82,10 @@ class Utils
 
     /**
      * @example
-     *      Utils::matchRequestPath('members', admin_base_path('members'))
-     *      Utils::matchRequestPath('members', admin_base_path('members*'))
-     *      Utils::matchRequestPath('members', admin_base_path('members/*'))
-     *      Utils::matchRequestPath('members', admin_base_path('members/* /view'))
+     *      Utils::matchRequestPath(admin_base_path('members'), admin_base_path('members'))
+     *      Utils::matchRequestPath(admin_base_path('members*'), admin_base_path('members'))
+     *      Utils::matchRequestPath(admin_base_path('members/*'), admin_base_path('members'))
+     *      Utils::matchRequestPath(admin_base_path('members/* /view'), admin_base_path('members'))
      */
     public static function matchRequestPath(string $pattern, string $path): bool
     {
@@ -96,7 +96,7 @@ class Utils
             return $path === $pattern;
         }
 
-        if (Str::endsWith($path, ['/*'])) {
+        if (Str::endsWith($pattern, ['/*']) && ! Str::endsWith($path, ['/create'])) {
             $pattern = (string) Str::of($pattern)->beforeLast('/');
             $path = (string) Str::of($path)->beforeLast('/');
         }

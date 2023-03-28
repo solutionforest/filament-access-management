@@ -19,7 +19,7 @@ class Authenticate extends Middleware
             return;
         }
 
-        if (! Permission::checkPermission($request->route()->uri())) {
+        if (! Permission::checkPermission($request->path())) {
             Permission::error();
         }
     }

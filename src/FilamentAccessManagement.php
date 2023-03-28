@@ -100,15 +100,21 @@ class FilamentAccessManagement
      */
     public static function shouldPassThrough(string|Request $request): bool
     {
-        $excepts = array_unique(array_merge(
-            (array) config('filament-access-management.auth.except', []),
-            ['/', '/error*']
-        ));
+        $excepts = array_unique(
+            array_merge([
+                admin_base_path('/'),
+                admin_base_path('/error*'),
+                'filament/logout',
+            ], array_map(
+                    fn ($except) => admin_base_path($except),
+                    (array) config('filament-access-management.auth.except', [])
+                )
+            )
+        );
 
         $current = is_string($request) ? $request : $request->path();
 
         foreach ($excepts as $except) {
-            $except = admin_base_path($except);
 
             if (! is_string($request)) {
                 $except = trim($except, '/');

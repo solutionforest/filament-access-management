@@ -15,18 +15,18 @@ class InstallCommand extends Command
 
     public function handle(): int
     {
-        // Config files
-        if (! ($this->configExists('permission.php') && $this->configExists('filament-access-management.php'))) {
-            $this->publishConfiguration();
-            $this->info('Published configuration');
-        } else {
-            if ($this->shouldOverwriteConfig()) {
-                $this->info('Overwriting configuration file...');
-                $this->publishConfiguration($force = true);
-            } else {
-                $this->info('Existing configuration was not overwritten');
-            }
-        }
+        // // Config files
+        // if (! ($this->configExists('permission.php') && $this->configExists('filament-access-management.php'))) {
+        //     $this->publishConfiguration();
+        //     $this->info('Published configuration');
+        // } else {
+        //     if ($this->shouldOverwriteConfig()) {
+        //         $this->info('Overwriting configuration file...');
+        //         $this->publishConfiguration($force = true);
+        //     } else {
+        //         $this->info('Existing configuration was not overwritten');
+        //     }
+        // }
 
         // Migration files
         $this->publishMigrations();

@@ -25,11 +25,10 @@ This is an authentication plugin for Filament Admin with Laravel-permission
    ```bash
    php artisan filament-access-management:install
    ```
-    This command will automatically run migration, publish `config/permission.php` and `config/filament-access-management.php` Configuration files, and create a **Super Admin User**:
-    ```bash
-    Email: 'admin@' . Str::of(config('app.name'))->slug() . '.com'
-    Password: admin
-    ```
+    This command will automatically run migration and create a **Super Admin User**, login information as following:
+
+    - Email address: admin@*("slug" pattern of config("app.name"))*.com
+    - Password: admin
 
 4. In your config/app.php place this code in you providers section
     ``` php
@@ -58,11 +57,13 @@ This is an authentication plugin for Filament Admin with Laravel-permission
     }
     ```
 
-## Publish View and Migrations
+## Publish Configs, Views, Translations and Migrations
 
-You can publish the views, lang and migrations with:
+You can publish the configs, views, translations and migrations with:
 
 ```bash
+php artisan vendor:publish --tag="filament-access-management-config"
+
 php artisan vendor:publish --tag="filament-access-management-views"
 
 php artisan vendor:publish --tag="filament-access-management-translations"

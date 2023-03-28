@@ -106,16 +106,15 @@ class FilamentAccessManagement
                 admin_base_path('/error*'),
                 'filament/logout',
             ], array_map(
-                    fn ($except) => admin_base_path($except),
-                    (array) config('filament-access-management.auth.except', [])
-                )
+                fn ($except) => admin_base_path($except),
+                (array) config('filament-access-management.auth.except', [])
+            )
             )
         );
 
         $current = is_string($request) ? $request : $request->path();
 
         foreach ($excepts as $except) {
-
             if (! is_string($request)) {
                 $except = trim($except, '/');
                 if ($request->is($except)) {

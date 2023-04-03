@@ -119,7 +119,7 @@ class UserResource extends Resource
 
     protected static function getNavigationIcon(): string
     {
-        return config('filament-access-management.navigationIcon.user') ?? parent::getNavigationIcon();
+        return config('filament-access-management.filament.navigationIcon.user') ?? parent::getNavigationIcon();
     }
 
     public static function getModel(): string

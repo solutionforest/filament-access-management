@@ -5,7 +5,9 @@ namespace SolutionForest\FilamentAccessManagement\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use SolutionForest\FilamentAccessManagement\Database\Seeders;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\FilamentAccessManagementServiceProvider;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class InstallCommand extends Command
 {
@@ -80,10 +82,20 @@ class InstallCommand extends Command
     {
         $this->call('migrate');
 
-        $params = [
-            '--class' => Seeders\AdminTablesSeeder::class,
+        $classes = [
+            Seeders\UserPermissionSeeder::class,
+            Seeders\NavigationSeeder::class,
         ];
+        foreach ($classes as $class) {
+            $params = [
+                '--class' => $class,
+            ];
 
-        $this->call('db:seed', $params);
+            $this->call('db:seed', $params);
+        }
+
+        // Clear cache
+        FilamentAuthenticate::clearPermissionCache();
+        FilamentAuthenticate::menu()->clearCache();
     }
 }

@@ -7,6 +7,7 @@ use Filament\PluginServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\LaravelPackageTools\Package;
 
 class FilamentAccessManagementServiceProvider extends PluginServiceProvider
@@ -28,6 +29,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
         return [
             Commands\InstallCommand::class,
             Commands\MakeSuperAdminUser::class,
+            Commands\MakeMenu::class,
         ];
     }
 
@@ -40,13 +42,13 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
     protected function getResources(): array
     {
-        return array_values(config('filament-access-management.resources', []));
+        return Utils::getResources();
     }
 
     protected function getPages(): array
     {
-        return array_merge([
-            Pages\Error::class,
+        return array_merge(Utils::getPages(), [
+            Pages\Error::class
         ]);
     }
 

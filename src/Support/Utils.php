@@ -4,6 +4,7 @@ namespace SolutionForest\FilamentAccessManagement\Support;
 
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use SolutionForest\FilamentAccessManagement\Models;
 
 class Utils
 {
@@ -14,7 +15,7 @@ class Utils
 
     public static function getSuperAdminRoleName(): string
     {
-        return (string) config('filament-access-management.roles.admin.name');
+        return (string) config('filament-access-management.roles.super-admin.name');
     }
 
     public static function getPermissions(): array
@@ -22,9 +23,9 @@ class Utils
         return config('filament-access-management.permissions', []);
     }
 
-    public static function getAdminPermissions(): array
+    public static function getSuperAdminPermissions(): array
     {
-        $permissionNames = config('filament-access-management.roles.admin.role_permissions', []);
+        $permissionNames = config('filament-access-management.roles.super-admin.role_permissions', []);
 
         return array_filter(
             self::getPermissions(),
@@ -48,6 +49,11 @@ class Utils
         return config('permission.models.permission', 'Spatie\\Permission\\Models\\Permission');
     }
 
+    public static function getMenuModel(): string
+    {
+        return config('filament-access-management.filament.navigation.model', Models\Menu::class);
+    }
+
     public static function getUserTableName(): ?string
     {
         return config('auth.providers.users.table');
@@ -63,9 +69,19 @@ class Utils
         return config('permission.table_names.permissions');
     }
 
-    public static function getCacheTag(): string
+    public static function getMenuTableName():?string
     {
-        return config('filament-access-management.cache.tag', 'user_permissions');
+        return config('filament-access-management.filament.navigation.table_name');
+    }
+
+    public static function getFilamentDefaultIcon(): string
+    {
+        return config('filament-access-management.filament.navigation.default_icon', 'heroicon-o-document-text');
+    }
+
+    public static function getUserPermissionCacheTag(): string
+    {
+        return config('filament-access-management.cache.user_permissions.tag', 'user_permissions');
     }
 
     public static function getUserPermissionCacheKey(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): string
@@ -77,7 +93,7 @@ class Utils
 
     public static function getUserPermissionCacheExpirationTime(): \DateInterval|int
     {
-        return config('permission.cache.expiration_time') ?: \DateInterval::createFromDateString('24 hours');
+        return config('filament-access-management.cache.user_permissions.expiration_time') ?: \DateInterval::createFromDateString('24 hours');
     }
 
     /**
@@ -105,5 +121,15 @@ class Utils
         }
 
         return Str::is($pattern, $path);
+    }
+
+    public static function getResources(): array
+    {
+        return (array) config('filament-access-management.filament.resources', []);
+    }
+
+    public static function getPages(): array
+    {
+        return (array) config('filament-access-management.filament.pages', []);
     }
 }

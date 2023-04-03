@@ -2,6 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
+use Filament\Navigation\NavigationBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
+use SolutionForest\FilamentAccessManagement\Support\Menu;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -17,12 +19,12 @@ class FilamentAccessManagement
     /**
      * Get user model.
      */
-    public static function user(): \Illuminate\Contracts\Auth\Authenticatable|null
+    public function user(): \Illuminate\Contracts\Auth\Authenticatable|null
     {
         return static::guard()->user();
     }
 
-    public static function guard(): \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard
+    public function guard(): \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard
     {
         return Auth::guard(Utils::getFilamentAuthGuard() ?: 'web');
     }
@@ -30,7 +32,7 @@ class FilamentAccessManagement
     /**
      * Check user cached permissions.
      */
-    public static function userPermissions(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): Collection
+    public function userPermissions(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): Collection
     {
         $user ??= static::user();
 
@@ -38,32 +40,34 @@ class FilamentAccessManagement
             Utils::getUserPermissionCacheKey($user),
             Utils::getUserPermissionCacheExpirationTime(),
             function () use ($user) {
-                $tags = Cache::get(Utils::getCacheTag());
+                $tags = Cache::get(Utils::getUserPermissionCacheTag());
                 if (is_null($tags)) {
                     $tags = [];
                 }
                 $tags = array_unique(array_merge($tags, [Utils::getUserPermissionCacheKey($user)]));
-                Cache::forever(Utils::getCacheTag(), $tags);
+                Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
 
                 return method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect();
             }
         );
     }
 
-    public static function clearPermissionCache(): void
+    public function clearPermissionCache(): void
     {
         // Spatie/Permission cache
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Custom cache
-        if ($tags = Cache::get(Utils::getCacheTag())) {
+        if ($tags = Cache::get(Utils::getUserPermissionCacheTag())) {
             if (is_array($tags)) {
                 collect($tags)->each(fn ($tag) => Cache::forget($tag));
             }
+
+            Cache::forget(Utils::getUserPermissionCacheTag());
         }
     }
 
-    public static function createAdminRole(): Model
+    public function createAdminRole(): Model
     {
         return Utils::getRoleModel()::firstOrCreate(
             ['name' => Utils::getSuperAdminRoleName()],
@@ -71,9 +75,9 @@ class FilamentAccessManagement
         );
     }
 
-    public static function createAdminPermission(): array
+    public function createAdminPermission(): array
     {
-        $permissions = Utils::getAdminPermissions();
+        $permissions = Utils::getSuperAdminPermissions();
 
         return array_map(function ($httpPath, $name) {
             return Utils::getPermissionModel()::firstOrCreate(
@@ -83,7 +87,7 @@ class FilamentAccessManagement
         }, $permissions, array_keys($permissions));
     }
 
-    public static function createPermissions(): array
+    public function createPermissions(): array
     {
         $permissions = Utils::getPermissions();
 
@@ -98,13 +102,14 @@ class FilamentAccessManagement
     /**
      * Determine if the requesting path that should pass through verification.
      */
-    public static function shouldPassThrough(string|Request $request): bool
+    public function shouldPassThrough(string|Request $request): bool
     {
         $excepts = array_unique(
             array_merge([
                 admin_base_path('/'),
                 admin_base_path('/error*'),
                 'filament/logout',
+                'filament/assets*',
             ], array_map(
                 fn ($except) => admin_base_path($except),
                 (array) config('filament-access-management.auth.except', [])
@@ -132,7 +137,7 @@ class FilamentAccessManagement
         return false;
     }
 
-    public static function allRoutes(): array
+    public function allRoutes(): array
     {
         $prefix = trim(config('filament.path'), '/');
 
@@ -166,5 +171,13 @@ class FilamentAccessManagement
             ->sort()
             ->keyBy(fn ($path) => $path)
             ->all();
+    }
+
+    /**
+     * Get filament navigation helper.
+     */
+    public function menu(): Menu
+    {
+        return app(Menu::class);
     }
 }

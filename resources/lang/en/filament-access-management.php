@@ -2,10 +2,6 @@
 
 return [
 
-    'section.group' => 'Authentication',
-    'section.users' => 'Users',
-    'section.user' => 'User',
-
     /*
         |--------------------------------------------------------------------------
         | Fields
@@ -20,7 +16,13 @@ return [
     'field.user.password' => 'Password',
     'field.user.confirm_password' => 'Confirm Password',
 
+    'field.menu.root' => 'Root',
+    'field.menu.icon' => 'ICON',
+    'field.menu.parent' => 'Parent',
+    'field.menu.uri' => 'URI',
+
     'field.guard_name' => 'Guard Name',
+    'field.title' => 'Title',
     'field.name' => 'Name',
     'field.permissions' => 'Permissions',
     'field.roles' => 'Roles',
@@ -35,11 +37,15 @@ return [
         |--------------------------------------------------------------------------
     */
 
+    'section.group' => 'Admin',
+    'section.users' => 'Users',
+    'section.user' => 'User',
     'section.permission' => 'Permission',
     'section.permissions' => 'Permissions',
     'section.role' => 'Role',
     'section.roles' => 'Roles',
     'section.roles_and_permissions' => 'Roles and Permissions',
+    'section.navigation' => 'Navigation',
 
     /*
         |--------------------------------------------------------------------------

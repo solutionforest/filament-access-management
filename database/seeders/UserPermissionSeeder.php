@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
-class AdminTablesSeeder extends Seeder
+class UserPermissionSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -38,7 +38,7 @@ class AdminTablesSeeder extends Seeder
         FilamentAuthenticate::createPermissions();
 
         // assign role permission
-        $role->givePermissionTo(array_keys(Utils::getAdminPermissions()));
+        $role->givePermissionTo(array_keys(Utils::getSuperAdminPermissions()));
 
         // assign user role
         $adminUser->assignRole(Utils::getSuperAdminRoleName());

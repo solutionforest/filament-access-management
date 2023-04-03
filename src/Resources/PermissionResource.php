@@ -97,7 +97,7 @@ class PermissionResource extends Resource
 
     protected static function getNavigationIcon(): string
     {
-        return config('filament-access-management.navigationIcon.permission') ?? parent::getNavigationIcon();
+        return config('filament-access-management.filament.navigationIcon.permission') ?? parent::getNavigationIcon();
     }
 
     public static function getModel(): string

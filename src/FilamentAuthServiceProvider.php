@@ -8,6 +8,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 
 class FilamentAuthServiceProvider extends ServiceProvider
@@ -37,13 +38,14 @@ class FilamentAuthServiceProvider extends ServiceProvider
 
     protected function configureNavigation()
     {
-        if (! Permission::isSuperAdmin()) {
-            $filamentNavigation = Filament::getNavigation();
-            Filament::navigation(function (NavigationBuilder $builder) use ($filamentNavigation): NavigationBuilder {
-                $groups = $filamentNavigation;
+        Filament::navigation(function (NavigationBuilder $builder) {
+            $groups = FilamentAuthenticate::menu()->getNavigationGroups();
+
+            if (! Permission::isSuperAdmin()) {
+                $menu = $groups;
 
                 $checkResult = Permission::checkPermission(
-                    collect($filamentNavigation)
+                    collect($menu)
                         ->map(fn (NavigationGroup $item) => $item->getItems())
                         ->flatten()
                         ->map(fn (NavigationItem $navItem) => $navItem->getUrl())
@@ -53,10 +55,10 @@ class FilamentAuthServiceProvider extends ServiceProvider
                 );
 
                 if (! is_bool($checkResult)) {
-                    $groups = [];
+                    $groups = collect();
 
                     $checkResult = array_keys(array_filter($checkResult));
-                    foreach ($filamentNavigation as $navGroupKey => $navGroup) {
+                    foreach ($menu as $navGroupKey => $navGroup) {
                         if ($navGroup instanceof NavigationGroup) {
                             $newNavGroup = $navGroup;
                             $newNavGroup->items(
@@ -67,15 +69,15 @@ class FilamentAuthServiceProvider extends ServiceProvider
                             );
 
                             if (count($newNavGroup->getItems()) > 0) {
-                                $groups[$navGroupKey] = $newNavGroup;
+                                $groups->put($navGroupKey, $newNavGroup);
                             }
                         }
                     }
                 }
+            }
 
-                return $builder->groups($groups);
-            });
-        }
+            return $builder->groups($groups->toArray());
+        });
     }
 
     protected function configureComponent()

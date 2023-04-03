@@ -1,6 +1,8 @@
 <?php
 
 use SolutionForest\FilamentAccessManagement\Http\Middleware;
+use SolutionForest\FilamentAccessManagement\Models;
+use SolutionForest\FilamentAccessManagement\Pages;
 use SolutionForest\FilamentAccessManagement\Resources;
 
 return [
@@ -17,23 +19,28 @@ return [
                 Middleware\Authenticate::class,
             ],
         ],
-        'permission' => [
-            'enable' => true,
+        'navigation' => [
+            'table_name' => 'filament_menu',
+            'model' => Models\Menu::class,
+            'default_icon' => 'heroicon-o-document-text',
         ],
-        'secure' => false,
-    ],
-    'navigationIcon' => [
-        'user' => 'heroicon-o-user',
-        'role' => 'heroicon-o-user-group',
-        'permission' => 'heroicon-o-lock-closed',
-    ],
-    'resources' => [
-        'UserResource' => Resources\UserResource::class,
-        'RoleResource' => Resources\RoleResource::class,
-        'PermissionResource' => Resources\PermissionResource::class,
+        'navigationIcon' => [
+            'user' => 'heroicon-o-user',
+            'role' => 'heroicon-o-user-group',
+            'permission' => 'heroicon-o-lock-closed',
+            'navigation' => 'heroicon-o-lock-closed',
+        ],
+        'pages' => [
+            Pages\Menu::class,
+        ],
+        'resources' => [
+            Resources\UserResource::class,
+            Resources\RoleResource::class,
+            Resources\PermissionResource::class,
+        ]
     ],
     'roles' => [
-        'admin' => [
+        'super-admin' => [
             'name' => 'super-admin',
             'role_permissions' => [
                 'users.*',
@@ -42,6 +49,13 @@ return [
             ],
         ],
     ],
+
+    /**
+     *
+     * Default permissions to install
+     *
+     */
+
     'permissions' => [
         'users.*' => '/admin/users*',
         'users.viewAny' => '/admin/users',
@@ -60,9 +74,25 @@ return [
         'permissions.view' => '/admin/permissions/*',
         'permissions.create' => '/admin/permissions/create',
         'permissions.update' => '/admin/permissions/*/edit',
+
+        'navigation.*' => '/admin/navigation*',
+        'navigation.viewAny' => '/admin/navigation',
+        'navigation.view' => '/admin/navigation/*',
+        'navigation.create' => '/admin/navigation/create',
+        'navigation.update' => '/admin/navigation/*/edit',
     ],
+
+    /**
+     *
+     * Cache settings
+     *
+     */
     'cache' => [
-        'tag' => 'user_permissions',
+        /**
+         *
+         * User's permission cache settings
+         *
+         */
         'user_permissions' => [
             /*
             * By default all permissions are cached for 24 hours to speed up performance.
@@ -73,7 +103,7 @@ return [
 
             /*
             * The cache key used to store all permissions.
-        */
+            */
 
             'key_prefix' => 'user_spatie.permission.cache',
 
@@ -84,6 +114,18 @@ return [
             */
 
             'store' => 'default',
+
+            'tag' => 'user_permissions',
         ],
+
+        /**
+         *
+         * Filament navigation cache settings
+         *
+         */
+        'navigation' => [
+            'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+            'key' => 'filament_navigation',
+        ]
     ],
 ];

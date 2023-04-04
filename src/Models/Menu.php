@@ -67,25 +67,34 @@ class Menu extends Model
         parent::boot();
 
         static::saving(function (self $menu) {
-            // Ensure uri start with '/'
+            $iconColumnName = $menu->determineIconColumnName();
             $uriColumnName = $menu->determineUriColumnName();
+
+            $icon = $menu->{$iconColumnName};
+
             $uri = $menu->{$uriColumnName};
-            if (! url()->isValidUrl($uri)) {
-                $menu->{$uriColumnName} = (string) Str::start($uri, '/');
+
+            // Is Navigation Group
+            if (count($menu->children) > 0) {
+                //
+            } else {
+                // non-navigation group must have icon
+                if (!filled($icon)) {
+                    $menu->{$iconColumnName} = Utils::getFilamentDefaultIcon();
+                }
+
+                // Ensure uri start with '/' or is valid url
+                if (! url()->isValidUrl($uri)) {
+                    $menu->{$uriColumnName} = (string) Str::start($uri, '/');
+                }
             }
         });
 
         static::saved(function (self $menu) {
-            // non-navigation group must have icon
-            $iconColumnName = $menu->determineIconColumnName();
-            $icon = $menu->{$iconColumnName};
-            if (empty($icon) && empty($menu->children)) {
-                $menu->{$iconColumnName} = Utils::getFilamentDefaultIcon();
-            }
-
             // Clear cache
             FilamentAuthenticate::menu()->clearCache();
         });
+
 
         static::deleted(function (self $menu) {
             // Clear cache

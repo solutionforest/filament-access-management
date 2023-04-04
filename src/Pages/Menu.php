@@ -3,8 +3,10 @@
 namespace SolutionForest\FilamentAccessManagement\Pages;
 
 use Filament\Forms;
+use Filament\Pages\Actions\CreateAction;
 use Guava\FilamentIconPicker\Forms\IconPicker;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use SolutionForest\FilamentTree\Actions;
 use SolutionForest\FilamentTree\Components\Tree;
 use SolutionForest\FilamentTree\Pages\TreePage;
 use SolutionForest\FilamentTree\Support\Utils as FilamentTreeHelper;
@@ -33,7 +35,8 @@ class Menu extends TreePage
                 ->required(),
 
             Forms\Components\TextInput::make('uri')
-                ->label(__('filament-access-management::filament-access-management.field.menu.uri')),
+                ->label(__('filament-access-management::filament-access-management.field.menu.uri'))
+                ->helperText('Relative path or external URL'),
 
             IconPicker::make('icon')
                 ->label(__('filament-access-management::filament-access-management.field.menu.icon'))
@@ -43,9 +46,8 @@ class Menu extends TreePage
                     'md' => 2,
                     'lg' => 3,
                 ])
-                ->sets('heroicons')
-                ->default(Utils::getFilamentDefaultIcon())
-                ->required(),
+                ->helperText('Menu item must contain the icon.')
+                ->default(Utils::getFilamentDefaultIcon()),
 
             Forms\Components\Select::make('parent_id')
                 ->label(__('filament-access-management::filament-access-management.field.menu.parent'))
@@ -67,13 +69,43 @@ class Menu extends TreePage
         }
 
         return $this->cachedOptions ??= [
-            'parent_id' => $this->getModel()::selectArray(static::getMaxDepth()),
+            'parent_id' => $this->getModel()::selectArray(static::getMaxDepth() - 1),
         ];
     }
 
     protected function hasDeleteAction(): bool
     {
         return true;
+    }
+
+    protected function configureCreateAction(CreateAction $action): CreateAction
+    {
+        $action = parent::configureCreateAction($action);
+
+        // Refresh navigation
+        $action->successRedirectUrl(static::getUrl());
+
+        return $action;
+    }
+
+    protected function configureDeleteAction(Actions\DeleteAction $action): Actions\DeleteAction
+    {
+        $action = parent::configureDeleteAction($action);
+
+        // Refresh navigation
+        $action->successRedirectUrl(static::getUrl());
+
+        return $action;
+    }
+
+    protected function configureEditAction(Actions\EditAction $action): Actions\EditAction
+    {
+        $action = parent::configureEditAction($action);
+
+        // Refresh navigation
+        $action->successRedirectUrl(static::getUrl());
+
+        return $action;
     }
 
     protected static function getNavigationGroup(): ?string

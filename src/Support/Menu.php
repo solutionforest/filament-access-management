@@ -158,7 +158,7 @@ class Menu
                 NavigationItem::make($treeItem[$labelColumnName])
                     ->group($groupLabel ?? "")
                     ->groupIcon($groupIcon ?? "")
-                    ->icon($treeItem[$iconColumnName] ?? "")
+                    ->icon($treeItem[$iconColumnName] ?? Utils::getFilamentDefaultIcon())   // must have icon
                     ->activeIcon($treeItem[$activeIconColumnName] ?? "")
                     ->isActiveWhen(fn (): bool => request()->is(trim(($treeItem[$uriColumnName] ?? "/"), '/')))
                     ->sort(intval($treeItem[$orderColumnName] ?? 0))

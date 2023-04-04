@@ -13,6 +13,8 @@ class Menu extends TreePage
 {
     protected static ?string $slug = 'menu';
 
+    protected ?array $cachedOptions = null;
+
     public static function getMaxDepth(): int
     {
         return 2;
@@ -47,9 +49,25 @@ class Menu extends TreePage
 
             Forms\Components\Select::make('parent_id')
                 ->label(__('filament-access-management::filament-access-management.field.menu.parent'))
-                ->options($this->getModel()::selectArray(static::getMaxDepth()))
+                ->options($this->getCachedOption('parent_id'))
                 ->default(FilamentTreeHelper::defaultParentId())
                 ->required(),
+        ];
+    }
+
+    protected function getCachedOption($name): array
+    {
+        return data_get($this->getCachedOptions(), $name, []);
+    }
+
+    protected function getCachedOptions(): array
+    {
+        if ($this->cachedOptions) {
+            return $this->cachedOptions;
+        }
+
+        return $this->cachedOptions ??= [
+            'parent_id' => $this->getModel()::selectArray(static::getMaxDepth()),
         ];
     }
 
@@ -61,5 +79,10 @@ class Menu extends TreePage
     protected static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));
+    }
+
+    protected static function getNavigationIcon(): string
+    {
+        return config('filament-access-management.filament.navigationIcon.menu') ?? parent::getNavigationIcon();
     }
 }

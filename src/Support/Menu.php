@@ -85,32 +85,40 @@ class Menu
             );
         }
 
-        return collect($tree)
-            ->groupBy(fn ($item) => empty($item[$childrenKeyName]) ? "" : $item[$titleColumnName])
-            ->map(function ($items, $label) use ($model, $childrenKeyName) {
-                $nodes = collect($items)->toArray();
+        $result = collect();
 
-                if (empty($nodes)) {
-                    return null;
-                }
+        foreach ($tree as $index => $item) {
 
-                $icon = null;
-                // Is Navigation Group
-                if (! empty($label)) {
-                    $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
-                    $icon = collect($nodes)->map(fn ($item) => $item[$iconColumnName] ?? null)->filter()->first();
+            $navGroupLabel = empty($item[$childrenKeyName]) ? null : $item[$titleColumnName];
 
-                    $nodes = collect($nodes)->map(fn ($item) => $item[$childrenKeyName])->filter()->first() ?? [];
-                }
-                $navigationGroupItems = static::buildNavigationGroupItems($childrenKeyName, $nodes, $label, $icon);
+            $nodes = collect($item)->toArray();
 
-                return NavigationGroup::make()
-                    ->label(empty($label)? null : $label)
+            if (empty($nodes)) {
+                continue;
+            }
+
+            $icon = null;
+            $childrenNodes = [];
+            // Is Navigation Group
+            if (! empty($navGroupLabel)) {
+                $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
+                $icon = $item[$iconColumnName] ?? null;
+                $childrenNodes = $item[$childrenKeyName] ?? [];
+            } else {
+                $childrenNodes[] = $nodes;
+            }
+            $navigationGroupItems = static::buildNavigationGroupItems($childrenNodes, $navGroupLabel, $icon);
+
+            $result->put(
+                $navGroupLabel ?? $index,
+                NavigationGroup::make()
+                    ->label($navGroupLabel)
                     ->icon($icon)
-                    ->items($navigationGroupItems);
-            })
-            ->filter()
-            ->sortKeys();
+                    ->items($navigationGroupItems)
+            );
+        }
+        return $result;
+
     }
 
     public static function clearCache(): void
@@ -129,7 +137,7 @@ class Menu
         return config('filament-access-management.cache.navigation.expiration_time') ?: \DateInterval::createFromDateString('24 hours');
     }
 
-    private static function buildNavigationGroupItems(string $childrenKeyName, array $treeItems = [], ?string $groupLabel = null, ?string $groupIcon = null): array
+    private static function buildNavigationGroupItems(array $treeItems = [], ?string $groupLabel = null, ?string $groupIcon = null): array
     {
         if (empty($treeItems)) {
             return [];

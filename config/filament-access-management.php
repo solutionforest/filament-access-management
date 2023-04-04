@@ -28,7 +28,7 @@ return [
             'user' => 'heroicon-o-user',
             'role' => 'heroicon-o-user-group',
             'permission' => 'heroicon-o-lock-closed',
-            'navigation' => 'heroicon-o-lock-closed',
+            'menu' => 'heroicon-o-menu',
         ],
         'pages' => [
             Pages\Menu::class,
@@ -46,6 +46,7 @@ return [
                 'users.*',
                 'roles.*',
                 'permissions.*',
+                'menu.*',
             ],
         ],
     ],
@@ -75,11 +76,11 @@ return [
         'permissions.create' => '/admin/permissions/create',
         'permissions.update' => '/admin/permissions/*/edit',
 
-        'navigation.*' => '/admin/navigation*',
-        'navigation.viewAny' => '/admin/navigation',
-        'navigation.view' => '/admin/navigation/*',
-        'navigation.create' => '/admin/navigation/create',
-        'navigation.update' => '/admin/navigation/*/edit',
+        'menu.*' => '/admin/menu*',
+        'menu.viewAny' => '/admin/menu',
+        'menu.view' => '/admin/menu/*',
+        'menu.create' => '/admin/menu/create',
+        'menu.update' => '/admin/menu/*/edit',
     ],
 
     /**

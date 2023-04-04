@@ -2,6 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
+use Closure;
 use Filament\Navigation\NavigationBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -13,9 +14,18 @@ use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Support\Menu;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\Permission\PermissionRegistrar;
+use Filament\Navigation\NavigationGroup;
+use Illuminate\Support\Arr;
+use Filament\Navigation\NavigationItem;
 
 class FilamentAccessManagement
 {
+    protected ?Closure $navigationBuilder = null;
+
+    protected array $customNavigationGroups = [];
+
+    protected array $customNavigationItems = [];
+
     /**
      * Get user model.
      */
@@ -179,5 +189,109 @@ class FilamentAccessManagement
     public function menu(): Menu
     {
         return app(Menu::class);
+    }
+
+    /**
+     * Get user navigation groups.
+     */
+    public function getUserNavigationGroups(): array
+    {
+        $groups = static::menu()->getNavigationGroups();
+
+        if (! Permission::isSuperAdmin()) {
+            $menu = $groups;
+
+            $checkResult = Permission::checkPermission(
+                collect($menu)
+                    ->map(fn (NavigationGroup $item) => $item->getItems())
+                    ->flatten()
+                    ->map(fn (NavigationItem $navItem) => $navItem->getUrl())
+                    ->filter()
+                    ->unique()
+                    ->toArray()
+            );
+
+            if (! is_bool($checkResult)) {
+                $groups = collect();
+
+                $checkResult = array_keys(array_filter($checkResult));
+                foreach ($menu as $navGroupKey => $navGroup) {
+                    if ($navGroup instanceof NavigationGroup) {
+                        $newNavGroup = $navGroup;
+                        $newNavGroup->items(
+                            collect($navGroup->getItems())
+                                ->filter(fn (NavigationItem $navItem) => in_array($navItem->getUrl(), $checkResult))
+                                ->values()
+                                ->toArray()
+                        );
+
+                        if (count($newNavGroup->getItems()) > 0) {
+                            $groups->put($navGroupKey, $newNavGroup);
+                        }
+                    }
+                }
+            }
+        }
+        return $groups->toArray();
+    }
+
+    /**
+     * Custom the filament navigation.
+     */
+    public function navigation(Closure $builder): void
+    {
+        $this->navigationBuilder = $builder;
+    }
+
+    /**
+     * @param string[]|NavigationGroup[] $groups
+     */
+    public function registerNavigationGroups(array $groups): void
+    {
+        $this->customNavigationGroups = array_merge($groups);
+    }
+
+    /**
+     * @param Navigation\NavigationItem[] $items
+     */
+    public function registerNavigationItems(array $items): void
+    {
+        $this->customNavigationItems = array_merge($items);
+    }
+
+    public function getCustomNavigationGroups(): array
+    {
+        return $this->customNavigationGroups;
+    }
+
+    public function getCustomNavigationItems(): array
+    {
+        return $this->customNavigationItems;
+    }
+
+    /**
+     * Get the custom filament navigation.
+     */
+    public function getCustomNavigation(): ?NavigationBuilder
+    {
+        [$groups, $items, $builder] = [$this->getCustomNavigationGroups(), $this->getCustomNavigationItems(), $this->navigationBuilder];
+        if (empty($groups) && empty($items) && empty($builder)) {
+            return null;
+        }
+
+        $result = app(NavigationBuilder::class);
+
+        if ($builder) {
+            try {
+                /** @var NavigationBuilder */
+                $result = $builder(app(NavigationBuilder::class));
+            } catch (\Throwable $e) {
+                throw new \Exception(message: 'Failed to create navigation builder', previous: $e);
+            }
+        }
+        $result->groups(collect($groups)->map(fn (NavigationGroup|string $group) => $group instanceof NavigationGroup ? $group : NavigationGroup::make()->label($group))->toArray());
+        $result->items($items);
+
+        return $result;
     }
 }

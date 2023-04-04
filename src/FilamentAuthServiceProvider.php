@@ -39,44 +39,11 @@ class FilamentAuthServiceProvider extends ServiceProvider
     protected function configureNavigation()
     {
         Filament::navigation(function (NavigationBuilder $builder) {
-            $groups = FilamentAuthenticate::menu()->getNavigationGroups();
-
-            if (! Permission::isSuperAdmin()) {
-                $menu = $groups;
-
-                $checkResult = Permission::checkPermission(
-                    collect($menu)
-                        ->map(fn (NavigationGroup $item) => $item->getItems())
-                        ->flatten()
-                        ->map(fn (NavigationItem $navItem) => $navItem->getUrl())
-                        ->filter()
-                        ->unique()
-                        ->toArray()
-                );
-
-                if (! is_bool($checkResult)) {
-                    $groups = collect();
-
-                    $checkResult = array_keys(array_filter($checkResult));
-                    foreach ($menu as $navGroupKey => $navGroup) {
-                        if ($navGroup instanceof NavigationGroup) {
-                            $newNavGroup = $navGroup;
-                            $newNavGroup->items(
-                                collect($navGroup->getItems())
-                                    ->filter(fn (NavigationItem $navItem) => in_array($navItem->getUrl(), $checkResult))
-                                    ->values()
-                                    ->toArray()
-                            );
-
-                            if (count($newNavGroup->getItems()) > 0) {
-                                $groups->put($navGroupKey, $newNavGroup);
-                            }
-                        }
-                    }
-                }
+            if ($customBuilder = FilamentAuthenticate::getCustomNavigation()) {
+                $builder = $customBuilder;
             }
 
-            return $builder->groups($groups->toArray());
+            return $builder->groups(FilamentAuthenticate::getUserNavigationGroups());
         });
     }
 

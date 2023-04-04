@@ -2,7 +2,10 @@
 
 namespace SolutionForest\FilamentAccessManagement\Facades;
 
+use Closure;
 use Filament\Navigation\NavigationBuilder;
+use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
@@ -20,6 +23,13 @@ use SolutionForest\FilamentAccessManagement\Support;
  * @method static bool shouldPassThrough(string|Request $request) Determine if the requesting path that should pass through verification.
  * @method static array allRoutes()
  * @method static Support\Menu menu() Get filament navigation helper.
+ * @method static array getUserNavigationGroups() Get user navigation groups.
+ * @method static void navigation(Closure $builder) Custom the filament navigation.
+ * @method static void registerNavigationGroups(string[]|NavigationGroup[] $groups)
+ * @method static void registerNavigationItems(NavigationItem[] $items)
+ * @method static array getCustomNavigationGroups()
+ * @method static array getCustomNavigationItems()
+ * @method static ?NavigationBuilder getCustomNavigation() Get the custom filament navigation.
  *
  * @see \SolutionForest\FilamentAccessManagement\FilamentAccessManagement
  */

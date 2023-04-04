@@ -76,7 +76,7 @@ class Utils
 
     public static function getFilamentDefaultIcon(): string
     {
-        return config('filament-access-management.filament.navigation.default_icon', 'heroicon-o-document-text');
+        return config('filament-access-management.filament.navigationIcon.default', 'heroicon-o-document-text');
     }
 
     public static function getUserPermissionCacheTag(): string

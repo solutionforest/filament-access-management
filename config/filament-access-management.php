@@ -6,6 +6,9 @@ use SolutionForest\FilamentAccessManagement\Pages;
 use SolutionForest\FilamentAccessManagement\Resources;
 
 return [
+    /**
+     * Except from authentication
+     */
     'auth' => [
         'except' => [
             '/',
@@ -20,11 +23,24 @@ return [
             ],
         ],
         'navigation' => [
+            /**
+             * Using db based filament navigation if true.
+             */
+            'enabled' => false,
+            /**
+             * Table name db based filament navigation.
+             */
             'table_name' => 'filament_menu',
+            /**
+             * Filament Menu Model.
+             */
             'model' => Models\Menu::class,
-            'default_icon' => 'heroicon-o-document-text',
         ],
         'navigationIcon' => [
+            /**
+             * Default ICON of the page.
+             */
+            'default' => 'heroicon-o-document-text',
             'user' => 'heroicon-o-user',
             'role' => 'heroicon-o-user-group',
             'permission' => 'heroicon-o-lock-closed',

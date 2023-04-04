@@ -38,13 +38,15 @@ class FilamentAuthServiceProvider extends ServiceProvider
 
     protected function configureNavigation()
     {
-        Filament::navigation(function (NavigationBuilder $builder) {
-            if ($customBuilder = FilamentAuthenticate::getCustomNavigation()) {
-                $builder = $customBuilder;
-            }
+        if (config('filament-access-management.filament.navigation.enabled', false)) {
+            Filament::navigation(function (NavigationBuilder $builder) {
+                if ($customBuilder = FilamentAuthenticate::getCustomNavigation()) {
+                    $builder = $customBuilder;
+                }
 
-            return $builder->groups(FilamentAuthenticate::getUserNavigationGroups());
-        });
+                return $builder->groups(FilamentAuthenticate::getUserNavigationGroups());
+            });
+        }
     }
 
     protected function configureComponent()

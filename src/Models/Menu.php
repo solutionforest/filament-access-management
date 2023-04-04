@@ -4,6 +4,7 @@ namespace SolutionForest\FilamentAccessManagement\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use SolutionForest\FilamentTree\Concern\ModelTree;
 use SolutionForest\FilamentTree\Support\Utils as FilamentTreeHelper;
@@ -81,7 +82,16 @@ class Menu extends Model
             if (empty($icon) && empty($menu->children)) {
                 $menu->{$iconColumnName} = Utils::getFilamentDefaultIcon();
             }
+
+            // Clear cache
+            FilamentAuthenticate::menu()->clearCache();
         });
+
+        static::deleted(function (self $menu) {
+            // Clear cache
+            FilamentAuthenticate::menu()->clearCache();
+        });
+
     }
 
     public function getTable()

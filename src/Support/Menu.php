@@ -4,14 +4,20 @@ namespace SolutionForest\FilamentAccessManagement\Support;
 
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use SolutionForest\FilamentAccessManagement\Navigation\NavigationItem;
 use SolutionForest\FilamentTree;
+use SolutionForest\FilamentTree\Concern\SupportTranslation;
 
 class Menu
 {
+    use SupportTranslation {
+        SupportTranslation::handleTranslatable as traitHandleTranslatable;
+    }
+
     /**
      * Get or create a navigation item from db.
      */
@@ -88,8 +94,9 @@ class Menu
         $result = collect();
 
         foreach ($tree as $index => $item) {
+            static::handleTranslatable($item);
 
-            $navGroupLabel = empty($item[$childrenKeyName]) ? null : $item[$titleColumnName];
+            $navGroupLabel = static::ensureNavigationLabel(empty($item[$childrenKeyName]) ? null : $item[$titleColumnName]);
 
             $nodes = collect($item)->toArray();
 
@@ -118,7 +125,6 @@ class Menu
             );
         }
         return $result;
-
     }
 
     public static function clearCache(): void
@@ -137,6 +143,30 @@ class Menu
         return config('filament-access-management.cache.navigation.expiration_time') ?: \DateInterval::createFromDateString('24 hours');
     }
 
+    private static function handleTranslatable(array &$final): void
+    {
+        $modelClass = Utils::getMenuModel();
+        if (method_exists($modelClass, 'handleTranslatable')) {
+            $modelClass::handleTranslatable($final);
+        } else {
+            static::traitHandleTranslatable($final, $modelClass);
+        }
+    }
+
+    private static function ensureNavigationLabel($label): ?string
+    {
+        if (! $label) {
+            return $label;
+        }
+        if (is_array($label) || $label instanceof Arrayable) {
+            return collect($label)->first();
+        }
+        if (! is_string($label)) {
+            return (string) $label;
+        }
+        return $label;
+    }
+
     private static function buildNavigationGroupItems(array $treeItems = [], ?string $groupLabel = null, ?string $groupIcon = null): array
     {
         if (empty($treeItems)) {
@@ -144,6 +174,8 @@ class Menu
         }
 
         $model = app(Utils::getMenuModel());
+
+        static::handleTranslatable($treeItems);
 
         $labelColumnName = method_exists($model, 'determineTitleColumnName') ? $model->determineTitleColumnName() : 'title';
         $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
@@ -155,7 +187,8 @@ class Menu
 
         return collect($treeItems)
             ->map(fn (array $treeItem) =>
-                NavigationItem::make($treeItem[$labelColumnName])
+                NavigationItem::make()
+                    ->label(static::ensureNavigationLabel($treeItem[$labelColumnName]) ?? "")
                     ->group($groupLabel ?? "")
                     ->groupIcon($groupIcon ?? "")
                     ->icon($treeItem[$iconColumnName] ?? Utils::getFilamentDefaultIcon())   // must have icon

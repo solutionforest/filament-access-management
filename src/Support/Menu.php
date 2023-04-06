@@ -175,8 +175,6 @@ class Menu
 
         $model = app(Utils::getMenuModel());
 
-        static::handleTranslatable($treeItems);
-
         $labelColumnName = method_exists($model, 'determineTitleColumnName') ? $model->determineTitleColumnName() : 'title';
         $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
         $activeIconColumnName = method_exists($model, 'determineActiveIconColumnName') ? $model->determineActiveIconColumnName() : 'active_icon';
@@ -186,6 +184,10 @@ class Menu
         $orderColumnName = method_exists($model, 'determineOrderColumnName') ? $model->determineOrderColumnName() : FilamentTree\Support\Utils::orderColumnName();
 
         return collect($treeItems)
+            ->map(function (array $treeItem) {
+                static::handleTranslatable($treeItem);
+                return $treeItem;
+            })
             ->map(fn (array $treeItem) =>
                 NavigationItem::make()
                     ->label(static::ensureNavigationLabel($treeItem[$labelColumnName]) ?? "")

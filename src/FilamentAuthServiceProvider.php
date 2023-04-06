@@ -51,18 +51,20 @@ class FilamentAuthServiceProvider extends ServiceProvider
 
     protected function configureComponent()
     {
-        \Filament\Support\Actions\BaseAction::configureUsing(function (\Filament\Support\Actions\BaseAction $component) {
-            if (method_exists($component, 'getUrl')) {
-                $component->hidden(function () use ($component) {
-                    $url = $component->getUrl();
+        if (config('filament-access-management.filament.path_permission_checking.action', false)) {
+            \Filament\Support\Actions\BaseAction::configureUsing(function (\Filament\Support\Actions\BaseAction $component) {
+                if (method_exists($component, 'getUrl')) {
+                    $component->hidden(function () use ($component) {
+                        $url = $component->getUrl();
 
-                    if (empty($url)) {
-                        return false;
-                    }
+                        if (empty($url)) {
+                            return false;
+                        }
 
-                    return ! Permission::checkPermission($url);
-                });
-            }
-        });
+                        return ! Permission::checkPermission($url);
+                    });
+                }
+            });
+        }
     }
 }

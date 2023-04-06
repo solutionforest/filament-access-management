@@ -17,6 +17,12 @@ return [
         ],
     ],
     'filament' => [
+        'path_permission_checking' => [
+            /**
+             * Determine the permissions if the `Action` have `url`
+             */
+            'action' => true,
+        ],
         'middleware' => [
             'base' => [
                 Middleware\Authenticate::class,

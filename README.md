@@ -14,14 +14,27 @@ This is an authentication plugin for Filament Admin with Laravel-permission
     ```bash
     composer require solution-forest/filament-access-management
     ```
+    
+2. Add the necessary trait to your User model:
 
-2. **Clear your config cache**:
+    ```php
+
+    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
+
+    class User extends Authenticatable
+    {
+        use FilamentUser;
+    }
+    ```
+    
+3. **Clear your config cache**:
    ```bash
     php artisan optimize:clear
     # or
     php artisan config:clear
    ```
-3. Then execute the following commands:
+
+4. Then execute the following commands:
    ```bash
    php artisan filament-access-management:install
    ```
@@ -30,7 +43,7 @@ This is an authentication plugin for Filament Admin with Laravel-permission
     - Email address: admin@*("slug" pattern of config("app.name"))*.com
     - Password: admin
 
-4. In your config/app.php place this code in you providers section
+5. In your config/app.php place this code in you providers section
     ``` php
     'providers' => [
 
@@ -45,17 +58,8 @@ This is an authentication plugin for Filament Admin with Laravel-permission
 
     ],
     ```
-5. Add the necessary trait to your User model:
+    
 
-    ```php
-
-    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
-
-    class User extends Authenticatable
-    {
-        use FilamentUser;
-    }
-    ```
 
 ## Publish Configs, Views, Translations and Migrations
 
@@ -78,6 +82,9 @@ php artisan migrate
 ```
 
 ## Usage
+
+Upon installation, "Menu", "Users", "Roles" and "Permissions" pages will be created. Each user have roles and each role have permissions.
+![image](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
 
 Create super admin user:
 

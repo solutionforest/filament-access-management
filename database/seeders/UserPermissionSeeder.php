@@ -4,6 +4,7 @@ namespace SolutionForest\FilamentAccessManagement\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
@@ -15,7 +16,7 @@ class UserPermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints(); // DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
         $now = now();
 
@@ -43,6 +44,6 @@ class UserPermissionSeeder extends Seeder
         // assign user role
         $adminUser->assignRole(Utils::getSuperAdminRoleName());
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints(); // DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

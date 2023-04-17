@@ -42,6 +42,14 @@ This is an authentication plugin for Filament Admin with Laravel-permission
 
     - Email address: admin@*("slug" pattern of config("app.name"))*.com
     - Password: admin
+    
+    You can also create super admin user with:
+
+    ```bash
+
+    php artisan make:super-admin-user
+
+    ```
 
 5. In your config/app.php place this code in you providers section
     ``` php
@@ -86,6 +94,23 @@ php artisan migrate
 Upon installation, "Menu", "Users", "Roles" and "Permissions" pages will be created. Each user have roles and each role have permissions.
 ![image](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
 
+Manage Menu:
+![image](https://user-images.githubusercontent.com/73818060/232438118-0b4089e7-4ff0-40b8-93b1-c6d4c089ef14.png)
+
+Manage Users and their roles:
+![image](https://user-images.githubusercontent.com/73818060/232437828-73039db1-8976-4a23-a14d-2943d9495a47.png)
+![image](https://user-images.githubusercontent.com/73818060/232437890-2db887e1-dcbb-4d96-b072-365720be66d7.png)
+
+Manage Roles and their permissions:
+![image](https://user-images.githubusercontent.com/73818060/232438496-002b56d6-db98-4672-82cc-efcfc06fba9e.png)
+![image](https://user-images.githubusercontent.com/73818060/232438548-29b655bc-d683-4924-90b7-6ba25991d7ff.png)
+
+Manage Permissions:
+![image](https://user-images.githubusercontent.com/73818060/232438632-e5d9a5e5-7ef5-4ca5-a330-37948acd9748.png)
+![image](https://user-images.githubusercontent.com/73818060/232438719-fc2bca0b-7233-4aae-bf87-9c1d8524e42d.png)
+
+
+
 Create super admin user:
 
 ```bash
@@ -112,12 +137,6 @@ Get current user:
 
 ```
 
-![image](./assets/images/user_1.png)
-![image](./assets/images/user_2.png)
-![image](./assets/images/role_1.png)
-![image](./assets/images/role_2.png)
-![image](./assets/images/permission_1.png)
-![image](./assets/images/permission_2.png)
 
 ## Changelog
 

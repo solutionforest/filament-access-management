@@ -92,6 +92,7 @@ php artisan migrate
 ## Usage
 
 Upon installation, "Menu", "Users", "Roles" and "Permissions" pages will be created. Each user have roles and each role have permissions.
+
 ![image](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
 
 Manage Menu:

@@ -38,12 +38,13 @@ This is an authentication plugin for Filament Admin with Laravel-permission
    ```bash
    php artisan filament-access-management:install
    ```
-    This command will automatically run migration and create a **Super Admin User**, login information as following:
+   If you don't already have a user named `admin`, this command creates a **Super Admin User** with the following credentials:
 
-    - Email address: admin@*("slug" pattern of config("app.name"))*.com
+    - Name: admin
+    - E-mail address: admin@("slug" pattern from config("app.name")).com
     - Password: admin
-    
-    You can also create super admin user with:
+
+    You can also create the super admin user with:
 
     ```bash
 

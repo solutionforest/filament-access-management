@@ -141,7 +141,7 @@ Get current user:
 
 ## Advance Usage
 
-In default, the menu created will co-exist with the original menu of filament. To override the original menu with the menu from this package, modify configs as following:
+In default, the menu created will co-exist with the original menu of filament. To override the original menu with the menu from this package, modify `/config/filament-access-management.php` as following:
 
 1. Set ```filament.navigation.enabled => true```
 

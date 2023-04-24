@@ -147,7 +147,9 @@ In default, the menu created will co-exist with the original menu of filament. T
 
 ``` php
 
-'navigation' => [
+    'filament' => [
+        ...
+        'navigation' => [
             /**
              * Using db based filament navigation if true.
              */
@@ -161,6 +163,8 @@ In default, the menu created will co-exist with the original menu of filament. T
              */
             'model' => Models\Menu::class,
         ]
+        ...
+    ]
 
 ```
 

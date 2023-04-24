@@ -6,8 +6,10 @@ use Carbon\Carbon;
 use Filament\PluginServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
+use SolutionForest\FilamentAccessManagement\Database\Seeders;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 
 class FilamentAccessManagementServiceProvider extends PluginServiceProvider
@@ -21,13 +23,36 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
             ->hasViews()
             ->hasTranslations()
             ->hasMigrations($this->getMigrations())
-            ->hasCommands($this->getCommands());
+            ->hasCommands($this->getCommands())
+            ->hasInstallCommand(function (InstallCommand $command) {
+                $command
+                    ->publishConfigFile()
+                    ->publishMigrations()
+                    // ->askToRunMigrations()
+                    ->endWith(function (InstallCommand $command) {
+                        $command->call('migrate');
+
+                        $classes = [
+                            Seeders\UserPermissionSeeder::class,
+                            Seeders\NavigationSeeder::class,
+                        ];
+                        foreach ($classes as $class) {
+                            $params = [
+                                '--class' => $class,
+                            ];
+
+                            $command->call('db:seed', $params);
+                        }
+                        // Clear cache
+                        Facades\FilamentAuthenticate::clearPermissionCache();
+                        Facades\FilamentAuthenticate::menu()->clearCache();
+                    });
+            });
     }
 
     protected function getCommands(): array
     {
         return [
-            Commands\InstallCommand::class,
             Commands\MakeSuperAdminUser::class,
             Commands\MakeMenu::class,
         ];

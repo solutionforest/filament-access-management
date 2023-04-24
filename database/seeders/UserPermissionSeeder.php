@@ -21,9 +21,9 @@ class UserPermissionSeeder extends Seeder
         $now = now();
 
         // create user
-        Utils::getUserModel()::truncate();
-        $adminUser = Utils::getUserModel()::create([
+        $adminUser = Utils::getUserModel()::firstOrCreate([
             'name' => 'admin',
+        ], [
             'email' => 'admin@'.Str::of(config('app.name'))->slug().'.com',
             'email_verified_at' => $now,
             'password' => bcrypt('admin'),

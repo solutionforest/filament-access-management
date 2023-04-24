@@ -138,6 +138,30 @@ Get current user:
 
 ```
 
+## Advance Usage
+
+In default, the menu created will co-exist with the original menu of filament. To override the original menu with the menu from this package, modify configs as following:
+
+1. Set ```filament.navigation.enabled => true```
+
+``` php
+
+'navigation' => [
+            /**
+             * Using db based filament navigation if true.
+             */
+            'enabled' => true,
+            /**
+             * Table name db based filament navigation.
+             */
+            'table_name' => 'filament_menu',
+            /**
+             * Filament Menu Model.
+             */
+            'model' => Models\Menu::class,
+        ]
+
+```
 
 ## Changelog
 

@@ -8,11 +8,7 @@ use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\Permission\Traits\HasRoles;
 
-/**
- * @deprecated This trait has been deprecated since version 1.0.1 and replaced by FilamentUserHelpers.
- *             Please use the FilamentUserHelpers trait instead to get the same functionality.
- */
-trait FilamentUser
+trait FilamentUserHelpers
 {
     use HasRoles;
 

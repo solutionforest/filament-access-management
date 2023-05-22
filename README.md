@@ -19,11 +19,11 @@ This is an authentication plugin for Filament Admin with Laravel-permission
 
     ```php
 
-    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUser;
+    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 
     class User extends Authenticatable
     {
-        use FilamentUser;
+        use FilamentUserHelpers;
     }
     ```
     

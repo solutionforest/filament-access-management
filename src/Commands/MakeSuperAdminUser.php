@@ -2,12 +2,12 @@
 
 namespace SolutionForest\FilamentAccessManagement\Commands;
 
-use Filament\Support\Commands\Concerns\CanValidateInput;
 use Illuminate\Console\Command;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
-use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Filament\Support\Commands\Concerns\CanValidateInput;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 
 class MakeSuperAdminUser extends Command
 {
@@ -35,18 +35,16 @@ class MakeSuperAdminUser extends Command
         return static::SUCCESS;
     }
 
-    protected function getUserData(): array
-    {
-        return [
-            'name' => $this->validateInput(fn () => $this->options['name'] ?? $this->ask('Name'), 'name', ['required'], fn () => $this->options['name'] = null),
-            'email' => $this->validateInput(fn () => $this->options['email'] ?? $this->ask('Email address'), 'email', ['required', 'email', 'unique:'.$this->getUserModel()], fn () => $this->options['email'] = null),
-            'password' => Hash::make($this->validateInput(fn () => $this->options['password'] ?? $this->secret('Password'), 'password', ['required', 'min:8'], fn () => $this->options['password'] = null)),
-        ];
-    }
-
     protected function createUser(): Authenticatable
     {
-        return static::getUserModel()::create($this->getUserData());
+        $email = $this->validateInput(fn () => $this->options['email'] ?? $this->ask('Email address'), 'email', ['required', 'email'], fn () => $this->options['email'] = null);
+
+        return static::getUserModel()::where('email', $email)->first() ?:
+            static::getUserModel()::create($this->getUserData([
+                'email' => $email,
+                'name' => $this->validateInput(fn () => $this->options['name'] ?? $this->ask('Name'), 'name', ['required'], fn () => $this->options['name'] = null),
+                'password' => Hash::make($this->validateInput(fn () => $this->options['password'] ?? $this->secret('Password'), 'password', ['required', 'min:8'], fn () => $this->options['password'] = null)),
+            ]));
     }
 
     protected function assignRole(Authenticatable $user): void
@@ -63,6 +61,6 @@ class MakeSuperAdminUser extends Command
 
     protected function sendSuccessMessage(Authenticatable $user): void
     {
-        $this->info('User '.($user->getAttribute('email') ?? $user->getAttribute('username')).' Created !');
+        $this->info('User ' . ($user->getAttribute('email') ?? $user->getAttribute('username')) . ' Created !');
     }
 }

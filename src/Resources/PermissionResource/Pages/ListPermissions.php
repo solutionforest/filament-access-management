@@ -2,6 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
 
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
@@ -12,6 +14,13 @@ use SolutionForest\FilamentAccessManagement\Support\Utils;
 class ListPermissions extends ListRecords
 {
     protected static string $resource = PermissionResource::class;
+
+    protected function getActions(): array
+    {
+        return [
+            CreateAction::make(),
+        ];
+    }
 
     protected function getTableBulkActions(): array
     {

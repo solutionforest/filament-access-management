@@ -3,9 +3,9 @@
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
 use SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers;
@@ -84,7 +84,7 @@ class RoleResource extends Resource
         ];
     }
 
-    protected static function getNavigationIcon(): string
+    public static function getNavigationIcon(): string
     {
         return config('filament-access-management.filament.navigationIcon.role') ?? parent::getNavigationIcon();
     }
@@ -94,7 +94,7 @@ class RoleResource extends Resource
         return Utils::getRoleModel() ?? parent::getModel();
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));
     }

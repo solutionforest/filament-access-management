@@ -2,10 +2,11 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
+use Filament\Actions\CreateAction;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
@@ -95,7 +96,7 @@ class PermissionResource extends Resource
         ];
     }
 
-    protected static function getNavigationIcon(): string
+    public static function getNavigationIcon(): string
     {
         return config('filament-access-management.filament.navigationIcon.permission') ?? parent::getNavigationIcon();
     }
@@ -105,7 +106,7 @@ class PermissionResource extends Resource
         return Utils::getPermissionModel() ?? parent::getModel();
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));
     }

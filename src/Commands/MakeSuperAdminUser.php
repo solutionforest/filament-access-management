@@ -2,10 +2,10 @@
 
 namespace SolutionForest\FilamentAccessManagement\Commands;
 
-use Filament\Support\Commands\Concerns\CanValidateInput;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
+use SolutionForest\FilamentAccessManagement\Concerns\Commands\CanValidateInput;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 

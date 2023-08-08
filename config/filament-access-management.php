@@ -50,7 +50,7 @@ return [
             'user' => 'heroicon-o-user',
             'role' => 'heroicon-o-user-group',
             'permission' => 'heroicon-o-lock-closed',
-            'menu' => 'heroicon-o-menu',
+            'menu' => 'heroicon-o-bars-3-bottom-left',
         ],
         'pages' => [
             Pages\Menu::class,

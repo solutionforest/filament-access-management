@@ -3,16 +3,15 @@
 namespace SolutionForest\FilamentAccessManagement;
 
 use Carbon\Carbon;
-use Filament\PluginServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Database\Seeders;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class FilamentAccessManagementServiceProvider extends PluginServiceProvider
+class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-access-management';
 
@@ -65,18 +64,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
         ];
     }
 
-    protected function getResources(): array
-    {
-        return Utils::getResources();
-    }
-
-    protected function getPages(): array
-    {
-        return array_merge(Utils::getPages(), [
-            Pages\Error::class
-        ]);
-    }
-
     public function packageRegistered(): void
     {
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
@@ -85,10 +72,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
         Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
-        // middleware
-        foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
-            Config::push('filament.middleware.base', $middleware);
-        }
         parent::packageRegistered();
     }
 

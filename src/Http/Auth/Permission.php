@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Request;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use SolutionForest\FilamentAccessManagement\Pages\Error as ErrorPage;
 
 class Permission
 {
@@ -113,11 +114,10 @@ class Permission
             abort(403);
         }
 
+        $url = ErrorPage::getUrl(['code' => 403]);
+
         throw new HttpResponseException(
-            response()
-            ->redirectToRoute('filament.pages.error', [
-                'code' => 403,
-            ])
+            response()->redirectTo($url)
         );
     }
 

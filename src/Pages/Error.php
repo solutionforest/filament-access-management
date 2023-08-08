@@ -12,32 +12,22 @@ class Error extends Page
 
     public $code;
 
-    public function mount($code): void
+    public function mount($code = null): void
     {
         $this->code = $code;
     }
 
     public static function getSlug(): string
     {
-        return 'error';
+        return 'error/{code?}';
     }
 
-    public static function getRoutes(): Closure
-    {
-        return function () {
-            $slug = static::getSlug();
-
-            Route::get($slug.'/{code}', static::class)
-                ->name($slug);
-        };
-    }
-
-    protected function getTitle(): string
+    public function getTitle(): string
     {
         return '';
     }
 
-    protected static function shouldRegisterNavigation(): bool
+    public static function shouldRegisterNavigation(): bool
     {
         return false;
     }

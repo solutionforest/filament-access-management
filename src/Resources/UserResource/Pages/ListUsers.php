@@ -2,7 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 
-use Filament\Pages\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 
@@ -13,7 +13,7 @@ class ListUsers extends ListRecords
     protected function getActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

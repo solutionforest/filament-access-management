@@ -217,7 +217,9 @@ class FilamentAccessManagement
                 $checkResult = array_keys(array_filter($checkResult));
                 foreach ($menu as $navGroupKey => $navGroup) {
                     if ($navGroup instanceof NavigationGroup) {
+
                         $newNavGroup = $navGroup;
+
                         $newNavGroup->items(
                             collect($navGroup->getItems())
                                 ->filter(fn (NavigationItem $navItem) => in_array($navItem->getUrl(), $checkResult))
@@ -232,6 +234,10 @@ class FilamentAccessManagement
                 }
             }
         }
+
+        // Ensure no icon for Navigation group
+        $groups->each(fn (NavigationGroup $navigationGroup) => $navigationGroup->icon(null));
+
         return $groups->toArray();
     }
 

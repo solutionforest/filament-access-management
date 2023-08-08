@@ -3,10 +3,10 @@
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers;
@@ -117,7 +117,7 @@ class UserResource extends Resource
         ];
     }
 
-    protected static function getNavigationIcon(): string
+    public static function getNavigationIcon(): string
     {
         return config('filament-access-management.filament.navigationIcon.user') ?? parent::getNavigationIcon();
     }
@@ -127,7 +127,7 @@ class UserResource extends Resource
         return Utils::getUserModel() ?? parent::getModel();
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));
     }

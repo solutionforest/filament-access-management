@@ -3,11 +3,10 @@
 namespace SolutionForest\FilamentAccessManagement\Pages;
 
 use Filament\Forms;
-use Filament\Pages\Actions\CreateAction;
+use Filament\Actions\CreateAction;
 use Guava\FilamentIconPicker\Forms\IconPicker;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use SolutionForest\FilamentTree\Actions;
-use SolutionForest\FilamentTree\Components\Tree;
 use SolutionForest\FilamentTree\Pages\TreePage;
 use SolutionForest\FilamentTree\Support\Utils as FilamentTreeHelper;
 
@@ -108,12 +107,12 @@ class Menu extends TreePage
         return $action;
     }
 
-    protected static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));
     }
 
-    protected static function getNavigationIcon(): string
+    public static function getNavigationIcon(): string
     {
         return config('filament-access-management.filament.navigationIcon.menu') ?? parent::getNavigationIcon();
     }

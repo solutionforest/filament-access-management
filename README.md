@@ -52,21 +52,17 @@ This is an authentication plugin for Filament Admin with Laravel-permission
 
     ```
 
-5. In your config/app.php place this code in you providers section
-    ``` php
-    'providers' => [
-
-        ...
-
-        /*
-            * Package Service Providers...
-            */
-        \SolutionForest\FilamentAccessManagement\FilamentAuthServiceProvider::class,
-
-        ...
-
-    ],
-    ```
+5. Register the plugin in your Panel provider:
+   > **Important:  Register the plugin in your Panel provider after version 2.x**
+   ``` bash
+    use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
+ 
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->plugin(FilamentAccessManagementPanel::make());
+    }
+   ```
     
 
 

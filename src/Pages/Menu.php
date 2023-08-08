@@ -77,6 +77,21 @@ class Menu extends TreePage
         return true;
     }
 
+    protected function getDeleteAction(): Actions\DeleteAction
+    {
+        return Actions\DeleteAction::make()->iconButton();
+    }
+
+    protected function getEditAction(): Actions\EditAction
+    {
+        return Actions\EditAction::make()->iconButton();
+    }
+
+    protected function getViewAction(): Actions\ViewAction
+    {
+        return Actions\ViewAction::make()->iconButton();
+    }
+
     protected function configureCreateAction(CreateAction $action): CreateAction
     {
         $action = parent::configureCreateAction($action);

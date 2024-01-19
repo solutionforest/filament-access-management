@@ -65,11 +65,20 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
         ];
     }
 
+    protected function getResources(): array
+    {
+        return [
+            Resources\UserResource::class,
+            Resources\RoleResource::class,
+            Resources\PermissionResource::class,
+        ];
+    }
+
     protected function getPages(): array
     {
-        return array_merge(Utils::getPages(), [
-            Pages\Error::class
-        ]);
+        return [
+            Pages\Error::class,
+        ];
     }
 
     public function packageRegistered(): void

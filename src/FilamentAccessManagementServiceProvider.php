@@ -107,33 +107,35 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
     public function packageBooted(): void
     {
-        $configFiles = [
-            __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
-        ];
-
-        $migrationFiles = [
-            //
-        ];
-
-        // publish config
-        foreach ($configFiles as $filePath => $fileName) {
-            $this->publishes([
-                $filePath => config_path($fileName),
-            ], "{$this->package->shortName()}-config");
-        }
-
-        $now = Carbon::now();
-
-        // publish migrations
-        foreach ($migrationFiles as $filePath => $fileName) {
-            $this->publishes([
-                $filePath => $this->generateMigrationName(
-                    $fileName,
-                    $now
-                ), ], "{$this->package->shortName()}-migrations");
-
-            if ($this->package->runsMigrations) {
-                $this->loadMigrationsFrom($filePath);
+        if ($this->app->runningInConsole()) {
+            $configFiles = [
+                __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
+            ];
+    
+            $migrationFiles = [
+                //
+            ];
+    
+            // publish config
+            foreach ($configFiles as $filePath => $fileName) {
+                $this->publishes([
+                    $filePath => config_path($fileName),
+                ], "{$this->package->shortName()}-config");
+            }
+    
+            $now = Carbon::now();
+    
+            // publish migrations
+            foreach ($migrationFiles as $filePath => $fileName) {
+                $this->publishes([
+                    $filePath => $this->generateMigrationName(
+                        $fileName,
+                        $now
+                    ), ], "{$this->package->shortName()}-migrations");
+    
+                if ($this->package->runsMigrations) {
+                    $this->loadMigrationsFrom($filePath);
+                }
             }
         }
 

@@ -2,13 +2,11 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
-use Carbon\Carbon;
 use Filament\PluginServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Database\Seeders;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
-use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 
@@ -28,7 +26,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
-                    // ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command) {
                         $command->call('migrate');
 
@@ -83,17 +80,17 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
     public function packageRegistered(): void
     {
+        parent::packageRegistered();
+
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
             return app(FilamentAccessManagement::class);
         });
-
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
-
-        parent::packageRegistered();
     }
 
     public function bootingPackage(): void
     {
+        parent::bootingPackage();
+
         Gate::before(function ($user, $ability) {
             if (Permission::isSuperAdmin()) {
                 return true;
@@ -101,44 +98,24 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
             return null;
         });
-
-        parent::bootingPackage();
     }
 
     public function packageBooted(): void
     {
+        parent::packageBooted();
+
         if ($this->app->runningInConsole()) {
+            // publish config from spatie vendor
             $configFiles = [
-                __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
+                __DIR__ . '/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
             ];
-    
-            $migrationFiles = [
-                //
-            ];
-    
+
             // publish config
             foreach ($configFiles as $filePath => $fileName) {
                 $this->publishes([
                     $filePath => config_path($fileName),
                 ], "{$this->package->shortName()}-config");
             }
-    
-            $now = Carbon::now();
-    
-            // publish migrations
-            foreach ($migrationFiles as $filePath => $fileName) {
-                $this->publishes([
-                    $filePath => $this->generateMigrationName(
-                        $fileName,
-                        $now
-                    ), ], "{$this->package->shortName()}-migrations");
-    
-                if ($this->package->runsMigrations) {
-                    $this->loadMigrationsFrom($filePath);
-                }
-            }
         }
-
-        parent::packageBooted();
     }
 }

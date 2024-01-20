@@ -84,8 +84,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
             return app(FilamentAccessManagement::class);
         });
 
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
-
         // middleware
         foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
             Config::push('filament.middleware.base', $middleware);

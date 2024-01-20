@@ -2,11 +2,13 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
+use Carbon\Carbon;
 use Filament\PluginServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Database\Seeders;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
+use SolutionForest\FilamentAccessManagement\Support\Utils;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 
@@ -26,6 +28,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
+                    // ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command) {
                         $command->call('migrate');
 
@@ -64,27 +67,30 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
     protected function getResources(): array
     {
-        return [
-            Resources\UserResource::class,
-            Resources\RoleResource::class,
-            Resources\PermissionResource::class,
-        ];
+        return Utils::getResources();
     }
 
     protected function getPages(): array
     {
-        return [
-            Pages\Error::class,
-        ];
+        return array_merge(Utils::getPages(), [
+            Pages\Error::class
+        ]);
     }
 
     public function packageRegistered(): void
     {
         parent::packageRegistered();
-
+        
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
             return app(FilamentAccessManagement::class);
         });
+
+        // Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+
+        // middleware
+        foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
+            Config::push('filament.middleware.base', $middleware);
+        }
     }
 
     public function bootingPackage(): void
@@ -104,18 +110,17 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
     {
         parent::packageBooted();
 
-        if ($this->app->runningInConsole()) {
-            // publish config from spatie vendor
-            $configFiles = [
-                __DIR__ . '/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
-            ];
-
-            // publish config
-            foreach ($configFiles as $filePath => $fileName) {
-                $this->publishes([
-                    $filePath => config_path($fileName),
-                ], "{$this->package->shortName()}-config");
-            }
+        $configFiles = [
+            __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
+        ];
+        // publish config
+        foreach ($configFiles as $filePath => $fileName) {
+            $this->publishes([
+                $filePath => config_path($fileName),
+            ], "{$this->package->shortName()}-config");
         }
+
+        $now = Carbon::now();
+
     }
 }

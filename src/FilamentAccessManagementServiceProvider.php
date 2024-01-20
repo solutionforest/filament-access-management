@@ -28,7 +28,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
-                    // ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command) {
                         $command->call('migrate');
 
@@ -85,7 +84,7 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
             return app(FilamentAccessManagement::class);
         });
 
-        // Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
         // middleware
         foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
@@ -119,8 +118,5 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $filePath => config_path($fileName),
             ], "{$this->package->shortName()}-config");
         }
-
-        $now = Carbon::now();
-
     }
 }

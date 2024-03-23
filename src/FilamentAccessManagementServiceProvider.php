@@ -72,12 +72,13 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             return app(FilamentAccessManagement::class);
         });
 
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+        //Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
     }
 
     public function bootingPackage(): void
     {
+        parent::bootingPackage();
 
         Gate::before(function ($user, $ability) {
             if (Permission::isSuperAdmin()) {
@@ -91,6 +92,7 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        parent::packageBooted();
         
         if ($this->app->runningInConsole()) {
 

@@ -68,9 +68,9 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
     {
         parent::packageRegistered();
 
-        $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
-            return app(FilamentAccessManagement::class);
-        });
+        // $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
+        //     return app(FilamentAccessManagement::class);
+        // });
 
         // Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 

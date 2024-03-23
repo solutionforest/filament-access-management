@@ -72,7 +72,7 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             return app(FilamentAccessManagement::class);
         });
 
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+        // Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
     }
 

@@ -66,17 +66,20 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
+        parent::packageRegistered();
+
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
             return app(FilamentAccessManagement::class);
         });
 
         Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
-        parent::packageRegistered();
     }
 
     public function bootingPackage(): void
     {
+        parent::bootingPackage();
+
         Gate::before(function ($user, $ability) {
             if (Permission::isSuperAdmin()) {
                 return true;
@@ -85,11 +88,12 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             return null;
         });
 
-        parent::bootingPackage();
     }
 
     public function packageBooted(): void
     {
+        parent::packageBooted();
+
         $configFiles = [
             __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
         ];
@@ -120,6 +124,5 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             }
         }
 
-        parent::packageBooted();
     }
 }

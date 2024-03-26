@@ -23,7 +23,7 @@
         "php": "^8.1",
         "filament/filament": "^3.0",
         "guava/filament-icon-picker": "^2.0",
-        "solution-forest/filament-tree": "^2.0.0",
+        "solution-forest/filament-tree": "dev-fixIsModalHidden",
         "spatie/laravel-package-tools": "^1.15.0",
         "spatie/laravel-permission": "^5.5"
     },
@@ -83,5 +83,11 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/raphaelcangucu/filament-tree.git"
+        }
+    ]
 }

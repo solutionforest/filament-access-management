@@ -4,8 +4,6 @@ namespace SolutionForest\FilamentAccessManagement;
 
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationBuilder;
-use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;

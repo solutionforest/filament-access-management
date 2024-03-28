@@ -28,7 +28,6 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
                 $command
                     ->publishConfigFile()
                     ->publishMigrations()
-                    // ->askToRunMigrations()
                     ->endWith(function (InstallCommand $command) {
                         $command->call('migrate');
 
@@ -79,21 +78,22 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
     public function packageRegistered(): void
     {
+        parent::packageRegistered();
+        
         $this->app->scoped('filament-access-management', function (): FilamentAccessManagement {
             return app(FilamentAccessManagement::class);
         });
-
-        Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
         // middleware
         foreach (config('filament-access-management.filament.middleware.base', []) as $middleware) {
             Config::push('filament.middleware.base', $middleware);
         }
-        parent::packageRegistered();
     }
 
     public function bootingPackage(): void
     {
+        parent::bootingPackage();
+
         Gate::before(function ($user, $ability) {
             if (Permission::isSuperAdmin()) {
                 return true;
@@ -101,42 +101,20 @@ class FilamentAccessManagementServiceProvider extends PluginServiceProvider
 
             return null;
         });
-
-        parent::bootingPackage();
     }
 
     public function packageBooted(): void
     {
+        parent::packageBooted();
+
         $configFiles = [
             __DIR__.'/../vendor/spatie/laravel-permission/config/permission.php' => 'permission.php',
         ];
-
-        $migrationFiles = [
-            //
-        ];
-
         // publish config
         foreach ($configFiles as $filePath => $fileName) {
             $this->publishes([
                 $filePath => config_path($fileName),
             ], "{$this->package->shortName()}-config");
         }
-
-        $now = Carbon::now();
-
-        // publish migrations
-        foreach ($migrationFiles as $filePath => $fileName) {
-            $this->publishes([
-                $filePath => $this->generateMigrationName(
-                    $fileName,
-                    $now
-                ), ], "{$this->package->shortName()}-migrations");
-
-            if ($this->package->runsMigrations) {
-                $this->loadMigrationsFrom($filePath);
-            }
-        }
-
-        parent::packageBooted();
     }
 }

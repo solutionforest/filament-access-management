@@ -65,7 +65,7 @@ class FilamentAccessManagement
     public function clearPermissionCache(): void
     {
         // Spatie/Permission cache
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Custom cache
         if ($tags = Cache::get(Utils::getUserPermissionCacheTag())) {

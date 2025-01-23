@@ -15,6 +15,8 @@ return [
             '/login',
             '/error*',
         ],
+        // Default user model
+        'model' => App\Models\User::class,
     ],
     'filament' => [
         'path_permission_checking' => [

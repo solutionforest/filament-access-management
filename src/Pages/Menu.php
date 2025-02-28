@@ -126,6 +126,11 @@ class Menu extends TreePage
         return $action;
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return strval(__('filament-access-management::filament-access-management.section.menu'));
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return strval(__('filament-access-management::filament-access-management.section.group'));

@@ -39,6 +39,7 @@ return [
     */
 
     'section.group' => 'Admin',
+    'section.menu' => 'Menu',
     'section.users' => 'Users',
     'section.user' => 'User',
     'section.permission' => 'Permission',

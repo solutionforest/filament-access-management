@@ -36,7 +36,7 @@ class Utils
 
     public static function getUserModel(): string
     {
-        return config('auth.providers.users.model', 'App\\Models\\User');
+        return config('filament-access-management.auth.model', 'App\\Models\\User');
     }
 
     public static function getRoleModel(): string

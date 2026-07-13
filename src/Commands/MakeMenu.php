@@ -44,7 +44,7 @@ class MakeMenu extends Command
             'uri' => $this->options['uri'],
             'badge' => $this->options['badge'],
             'badge_color' => $this->options['badgeColor'],
-            'parent_id' => $this->validateInput(fn () => $this->options['parent']  ?? $this->ask('Parent ID'), 'parent', ['integer']),
+            'parent_id' => $this->validateInput(fn () => $this->options['parent'] ?? $this->ask('Parent ID'), 'parent', ['integer']),
         ];
     }
 
@@ -60,6 +60,6 @@ class MakeMenu extends Command
 
     protected function sendSuccessMessage(Model $model): void
     {
-        $this->info('Menu '. $model->getAttribute('title') .' Created !');
+        $this->info('Menu '.$model->getAttribute('title').' Created !');
     }
 }

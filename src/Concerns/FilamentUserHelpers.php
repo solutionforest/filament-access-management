@@ -33,7 +33,6 @@ trait FilamentUserHelpers
 
     public function getCachedPermissions(): Collection
     {
-        return
-        FilamentAuthenticate::userPermissions($this);
+        return FilamentAuthenticate::userPermissions($this);
     }
 }

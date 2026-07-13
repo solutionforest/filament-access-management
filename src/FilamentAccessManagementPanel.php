@@ -2,7 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
-use Filament\Actions\StaticAction;
+use Filament\Actions\Action;
 use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Panel;
@@ -23,7 +23,7 @@ class FilamentAccessManagementPanel implements Plugin
         $resources = Utils::getResources();
 
         $pages = array_merge(Utils::getPages(), [
-            ErrorPage::class
+            ErrorPage::class,
         ]);
 
         $panel->resources($resources);
@@ -48,7 +48,7 @@ class FilamentAccessManagementPanel implements Plugin
     {
         return app(static::class);
     }
-    
+
     public static function get(): static
     {
         return filament(app(static::class)->getId());
@@ -69,7 +69,7 @@ class FilamentAccessManagementPanel implements Plugin
     protected function configureComponent()
     {
         if (config('filament-access-management.filament.path_permission_checking.action', false)) {
-            StaticAction::configureUsing(function (StaticAction $component) {
+            Action::configureUsing(function (Action $component) {
                 if (method_exists($component, 'getUrl')) {
                     $component->hidden(function () use ($component) {
                         $url = $component->getUrl();

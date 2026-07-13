@@ -2,11 +2,15 @@
 
 namespace SolutionForest\FilamentAccessManagement\Pages;
 
-use Filament\Forms;
 use Filament\Actions\CreateAction;
-use Guava\FilamentIconPicker\Forms\IconPicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Guava\IconPicker\Forms\Components\IconPicker;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
-use SolutionForest\FilamentTree\Actions;
+use SolutionForest\FilamentTree\Actions\DeleteAction;
+use SolutionForest\FilamentTree\Actions\EditAction;
+use SolutionForest\FilamentTree\Actions\ViewAction;
 use SolutionForest\FilamentTree\Pages\TreePage;
 use SolutionForest\FilamentTree\Support\Utils as FilamentTreeHelper;
 
@@ -29,30 +33,25 @@ class Menu extends TreePage
     protected function getFormSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('title')
+            TextInput::make('title')
                 ->label(__('filament-access-management::filament-access-management.field.title'))
                 ->required(),
 
-            Forms\Components\TextInput::make('uri')
+            TextInput::make('uri')
                 ->label(__('filament-access-management::filament-access-management.field.menu.uri'))
                 ->helperText('Relative path or external URL'),
 
-            Forms\Components\Toggle::make('is_filament_panel')
+            Toggle::make('is_filament_panel')
                 ->label(__('filament-access-management::filament-access-management.field.menu.is_filament_panel'))
                 ->inlineLabel(),
 
             IconPicker::make('icon')
                 ->label(__('filament-access-management::filament-access-management.field.menu.icon'))
-                ->preload()
-                ->columns([
-                    'default' => 1,
-                    'md' => 2,
-                    'lg' => 3,
-                ])
+                ->gridSearchResults()
                 ->helperText('Menu item must contain the icon.')
                 ->default(Utils::getFilamentDefaultIcon()),
 
-            Forms\Components\Select::make('parent_id')
+            Select::make('parent_id')
                 ->label(__('filament-access-management::filament-access-management.field.menu.parent'))
                 ->options($this->getCachedOption('parent_id'))
                 ->default(FilamentTreeHelper::defaultParentId())
@@ -81,19 +80,19 @@ class Menu extends TreePage
         return true;
     }
 
-    protected function getDeleteAction(): Actions\DeleteAction
+    protected function getDeleteAction(): DeleteAction
     {
-        return Actions\DeleteAction::make()->iconButton();
+        return DeleteAction::make()->iconButton();
     }
 
-    protected function getEditAction(): Actions\EditAction
+    protected function getEditAction(): EditAction
     {
-        return Actions\EditAction::make()->iconButton();
+        return EditAction::make()->iconButton();
     }
 
-    protected function getViewAction(): Actions\ViewAction
+    protected function getViewAction(): ViewAction
     {
-        return Actions\ViewAction::make()->iconButton();
+        return ViewAction::make()->iconButton();
     }
 
     protected function configureCreateAction(CreateAction $action): CreateAction
@@ -106,7 +105,7 @@ class Menu extends TreePage
         return $action;
     }
 
-    protected function configureDeleteAction(Actions\DeleteAction $action): Actions\DeleteAction
+    protected function configureDeleteAction(DeleteAction $action): DeleteAction
     {
         $action = parent::configureDeleteAction($action);
 
@@ -116,7 +115,7 @@ class Menu extends TreePage
         return $action;
     }
 
-    protected function configureEditAction(Actions\EditAction $action): Actions\EditAction
+    protected function configureEditAction(EditAction $action): EditAction
     {
         $action = parent::configureEditAction($action);
 

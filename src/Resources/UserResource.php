@@ -2,35 +2,42 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
-use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\CreateUser;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\EditUser;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\ListUsers;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\ViewUser;
+use SolutionForest\FilamentAccessManagement\Resources\UserResource\RelationManagers\RolesRelationManager;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class UserResource extends Resource
 {
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Card::make()
+        return $schema
+            ->components([
+                Section::make()
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label(strval(__('filament-access-management::filament-access-management.field.user.name')))
                             ->required(),
 
-                        Forms\Components\TextInput::make('email')
+                        TextInput::make('email')
                             ->required()
                             ->email()
                             ->unique(table: static::getModel(), ignorable: fn ($record) => $record)
                             ->label(strval(__('filament-access-management::filament-access-management.field.user.email'))),
 
-                        Forms\Components\TextInput::make('password')
+                        TextInput::make('password')
                             ->same('passwordConfirmation')
                             ->password()
                             ->maxLength(255)
@@ -38,7 +45,7 @@ class UserResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => ! empty($state) ? Hash::make($state) : '')
                             ->label(strval(__('filament-access-management::filament-access-management.field.user.password'))),
 
-                        Forms\Components\TextInput::make('passwordConfirmation')
+                        TextInput::make('passwordConfirmation')
                             ->password()
                             ->dehydrated(false)
                             ->maxLength(255)
@@ -57,22 +64,22 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.id'))),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable()
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.user.name'))),
 
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->searchable()
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.user.email'))),
 
-                Tables\Columns\IconColumn::make('email_verified_at')
-                    ->options([
+                IconColumn::make('email_verified_at')
+                    ->icons([
                         'heroicon-o-check-circle',
                         'heroicon-o-x-circle' => fn ($state): bool => $state === null,
                     ])
@@ -82,38 +89,39 @@ class UserResource extends Resource
                     ])
                     ->label(strval(__('filament-access-management::filament-access-management.field.user.verified_at'))),
 
-                Tables\Columns\TagsColumn::make('roles.name')
+                TextColumn::make('roles.name')
+                    ->badge()
                     ->label(strval(__('filament-access-management::filament-access-management.field.user.roles'))),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime('Y-m-d H:i:s')
                     ->label(strval(__('filament-access-management::filament-access-management.field.user.created_at'))),
             ])
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\RolesRelationManager::class,
+            RolesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
-            'view' => Pages\ViewUser::route('/{record}'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
+            'view' => ViewUser::route('/{record}'),
         ];
     }
 

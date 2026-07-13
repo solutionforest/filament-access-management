@@ -2,36 +2,43 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use Filament\Actions\CreateAction;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
-use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\CreatePermission;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\EditPermission;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\ListPermissions;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\ViewPermission;
+use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers\RolesRelationManager;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class PermissionResource extends Resource
 {
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Card::make()
+        return $schema
+            ->components([
+                Section::make()
                     ->schema([
-                        Forms\Components\Grid::make(2)->schema([
-                            Forms\Components\TextInput::make('name')
+                        Grid::make(2)->schema([
+                            TextInput::make('name')
                                 ->required()
                                 ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                            Forms\Components\TextInput::make('guard_name')
+                            TextInput::make('guard_name')
                                 ->required()
                                 ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                                 ->default(config('auth.defaults.guard')),
 
-                            Forms\Components\Select::make('http_path')
+                            Select::make('http_path')
                                 ->options(FilamentAuthenticate::allRoutes())
                                 ->searchable()
                                 ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
@@ -49,50 +56,50 @@ class PermissionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.id'))),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->sortable()
                     ->searchable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                Tables\Columns\TextColumn::make('guard_name')
+                TextColumn::make('guard_name')
                     ->label(strval(__('filament-access-management::filament-access-management.field.guard_name'))),
 
-                Tables\Columns\TextColumn::make('http_path')
+                TextColumn::make('http_path')
                     ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime('Y-m-d H:i:s')
                     ->label(strval(__('filament-access-management::filament-access-management.field.created_at'))),
             ])
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\RolesRelationManager::class,
+            RolesRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPermissions::route('/'),
-            'create' => Pages\CreatePermission::route('/create'),
-            'edit' => Pages\EditPermission::route('/{record}/edit'),
-            'view' => Pages\ViewPermission::route('/{record}'),
+            'index' => ListPermissions::route('/'),
+            'create' => CreatePermission::route('/create'),
+            'edit' => EditPermission::route('/{record}/edit'),
+            'view' => ViewPermission::route('/{record}'),
         ];
     }
 

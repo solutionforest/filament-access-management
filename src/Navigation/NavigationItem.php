@@ -15,7 +15,7 @@ class NavigationItem extends BaseNavigationItem
         return $this;
     }
 
-    public function getGroupIcon():?string
+    public function getGroupIcon(): ?string
     {
         return $this->groupIcon;
     }

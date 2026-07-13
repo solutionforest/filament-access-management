@@ -2,10 +2,11 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\PermissionResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class RolesRelationManager extends RelationManager
@@ -14,16 +15,16 @@ class RolesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(2)->schema([
-                    Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                Grid::make(2)->schema([
+                    TextInput::make('name')
                         ->required()
                         ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                    Forms\Components\TextInput::make('guard_name')
+                    TextInput::make('guard_name')
                         ->required()
                         ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                         ->default(config('auth.defaults.guard')),
@@ -36,19 +37,19 @@ class RolesRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.id'))),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->sortable()
                     ->searchable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                Tables\Columns\TextColumn::make('guard_name')
+                TextColumn::make('guard_name')
                     ->label(strval(__('filament-access-management::filament-access-management.field.guard_name'))),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime('Y-m-d H:i:s')
                     ->label(strval(__('filament-access-management::filament-access-management.field.created_at'))),
             ])
@@ -58,10 +59,10 @@ class RolesRelationManager extends RelationManager
             ->headerActions([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 //
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 //
             ]);
     }

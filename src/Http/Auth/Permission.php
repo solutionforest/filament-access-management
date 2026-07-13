@@ -6,9 +6,9 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use SolutionForest\FilamentAccessManagement\Pages\Error as ErrorPage;
 use SolutionForest\FilamentAccessManagement\Support\Request;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
-use SolutionForest\FilamentAccessManagement\Pages\Error as ErrorPage;
 
 class Permission
 {
@@ -106,7 +106,7 @@ class Permission
     /**
      * Send error response page.
      *
-     * @throws \Illuminate\Http\Exceptions\HttpResponseException
+     * @throws HttpResponseException
      */
     public static function error()
     {

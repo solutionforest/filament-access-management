@@ -34,48 +34,49 @@ class Menu extends Model
         if (empty($this->{$uriColumnName})) {
             return null;
         }
-        if ($this->is_filament_panel && $panel = (filament()->getCurrentPanel() ?? filament()->getDefaultPanel())) {
+        if ($this->is_filament_panel && $panel = (filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())) {
 
-            $pathInPanel = (string)str($panel->getPath())
+            $pathInPanel = (string) str($panel->getPath())
                 ->trim('/')
                 ->append('/')
                 ->when($panel->hasTenancy(),
                     fn ($str) => $str
                         ->append(filament()->getTenant()?->getKey())
                         ->append('/'))
-                    ->append(trim($this->{$uriColumnName}, '/'));
+                ->append(trim($this->{$uriColumnName}, '/'));
 
             return url($pathInPanel);
         }
+
         return $this->{$uriColumnName};
     }
 
-    public function determineTitleColumnName() : string
+    public function determineTitleColumnName(): string
     {
         return 'title';
     }
 
-    public function determineIconColumnName() : string
+    public function determineIconColumnName(): string
     {
         return 'icon';
     }
 
-    public function determineActiveIconColumnName() : string
+    public function determineActiveIconColumnName(): string
     {
         return 'active_icon';
     }
 
-    public function determineUriColumnName() : string
+    public function determineUriColumnName(): string
     {
         return 'uri';
     }
 
-    public function determineBadgeColumnName() : string
+    public function determineBadgeColumnName(): string
     {
         return 'badge';
     }
 
-    public function determineBadgeColorColumnName() : string
+    public function determineBadgeColorColumnName(): string
     {
         return 'badge_color';
     }
@@ -97,7 +98,7 @@ class Menu extends Model
                 //
             } else {
                 // non-navigation group must have icon
-                if (!filled($icon)) {
+                if (! filled($icon)) {
                     $menu->{$iconColumnName} = Utils::getFilamentDefaultIcon();
                 }
 
@@ -112,7 +113,6 @@ class Menu extends Model
             // Clear cache
             FilamentAuthenticate::menu()->clearCache();
         });
-
 
         static::deleted(function (self $menu) {
             // Clear cache

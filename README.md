@@ -7,6 +7,14 @@
 
 This is an authentication plugin for Filament Admin with Laravel-permission
 
+## Compatibility
+
+| Plugin version | Filament version |
+| --------------- | ---------------- |
+| 1.x             | 2.x               |
+| 2.x             | 3.x               |
+| 3.x             | 4.x / 5.x         |
+
 ## Installation
 
 1. Ensure you have already installed the Filament panel.

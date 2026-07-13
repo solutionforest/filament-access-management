@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use SolutionForest\FilamentAccessManagement\Http\Middleware;
 use SolutionForest\FilamentAccessManagement\Models;
 use SolutionForest\FilamentAccessManagement\Pages;
@@ -16,7 +17,7 @@ return [
             '/error*',
         ],
         // Default user model
-        'model' => App\Models\User::class,
+        'model' => User::class,
     ],
     'filament' => [
         'path_permission_checking' => [
@@ -61,7 +62,7 @@ return [
             Resources\UserResource::class,
             Resources\RoleResource::class,
             Resources\PermissionResource::class,
-        ]
+        ],
     ],
     'roles' => [
         'super-admin' => [
@@ -76,11 +77,8 @@ return [
     ],
 
     /**
-     *
      * Default permissions to install
-     *
      */
-
     'permissions' => [
         'users.*' => '/admin/users*',
         'users.viewAny' => '/admin/users',
@@ -108,15 +106,11 @@ return [
     ],
 
     /**
-     *
      * Cache settings
-     *
      */
     'cache' => [
         /**
-         *
          * User's permission cache settings
-         *
          */
         'user_permissions' => [
             /*
@@ -124,7 +118,7 @@ return [
             * When permissions or roles are updated the cache is flushed automatically.
             */
 
-            'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+            'expiration_time' => DateInterval::createFromDateString('24 hours'),
 
             /*
             * The cache key used to store all permissions.
@@ -144,13 +138,11 @@ return [
         ],
 
         /**
-         *
          * Filament navigation cache settings
-         *
          */
         'navigation' => [
-            'expiration_time' => \DateInterval::createFromDateString('24 hours'),
+            'expiration_time' => DateInterval::createFromDateString('24 hours'),
             'key' => 'filament_navigation',
-        ]
+        ],
     ],
 ];

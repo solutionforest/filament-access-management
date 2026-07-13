@@ -6,15 +6,19 @@ use Closure;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
+use SolutionForest\FilamentAccessManagement\FilamentAccessManagement;
 use SolutionForest\FilamentAccessManagement\Support;
+
 /**
  * @method static Authenticatable user() Get user model.
- * @method static \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard guard()
+ * @method static Guard|StatefulGuard guard()
  * @method static Collection userPermissions(Authenticatable|null $user = null) Check user cached permissions.
  * @method static void clearPermissionCache()
  * @method static Model createAdminRole()
@@ -31,7 +35,7 @@ use SolutionForest\FilamentAccessManagement\Support;
  * @method static array getCustomNavigationItems()
  * @method static ?NavigationBuilder getCustomNavigation() Get the custom filament navigation.
  *
- * @see \SolutionForest\FilamentAccessManagement\FilamentAccessManagement
+ * @see FilamentAccessManagement
  */
 class FilamentAuthenticate extends Facade
 {

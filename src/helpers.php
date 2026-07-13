@@ -43,7 +43,7 @@ if (! function_exists('admin_base_path')) {
      */
     function admin_base_path($path = '', $panel = null)
     {
-        $prefix = '/'.trim(config('filament.path', (filament()->getPanel($panel) ?? filament()->getCurrentPanel() ?? filament()->getDefaultPanel())->getPath()), '/');
+        $prefix = '/'.trim(config('filament.path', (filament()->getPanel($panel) ?? filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())->getPath()), '/');
 
         $prefix = ($prefix == '/') ? '' : $prefix;
 

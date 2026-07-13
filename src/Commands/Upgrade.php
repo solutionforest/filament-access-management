@@ -2,15 +2,14 @@
 
 namespace SolutionForest\FilamentAccessManagement\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 use function Laravel\Prompts\progress;
 
 class Upgrade extends Command
 {
-
     protected $signature = 'filament-access-management:upgrade';
 
     public $description = 'Upgrade FilamentAccessManagement';
@@ -33,8 +32,8 @@ class Upgrade extends Command
                 ->orWhere('uri', '/admin') // Admin dashboard page on filament v2
                 ->orWhere('uri', 'like', '/admin/%'); // The page(s) under admin on filament v2
         })
-        ->where('is_filament_panel', false) // default value
-        ->get();
+            ->where('is_filament_panel', false) // default value
+            ->get();
 
         progress('Updating uri of menu as current version', count($v1PathRecords), function () use ($v1PathRecords) {
 
@@ -42,7 +41,7 @@ class Upgrade extends Command
 
                 try {
 
-                    $newUri = (string)str($v1PathRecord->uri)
+                    $newUri = (string) str($v1PathRecord->uri)
                         ->replace('/admin', '');
 
                     $v1PathRecord->update([
@@ -50,7 +49,7 @@ class Upgrade extends Command
                         'is_filament_panel' => true,
                     ]);
 
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->error("Updating uri of menu failed (Detail: {$e->getMessage()})");
                 }
             }

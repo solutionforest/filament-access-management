@@ -127,8 +127,10 @@ class FilamentAccessManagement
                 [
                     $fiPanel->getPath(),
                     (string) str($fiPanel->getPath())->append('/error*'),
-                    $fiPanel->getLoginUrl(),
-                    $fiPanel->getLogoutUrl(),
+                    // getLoginUrl()/getLogoutUrl() return absolute URLs; reduce them to
+                    // their path component so they match request paths (e.g. logout).
+                    parse_url((string) $fiPanel->getLoginUrl(), PHP_URL_PATH),
+                    parse_url((string) $fiPanel->getLogoutUrl(), PHP_URL_PATH),
                     (string) str($fiPanel->getPath())->append('/assets*'),
                 ],
                 array_map(

@@ -3,12 +3,12 @@
 // namespace SolutionForest\FilamentAccessManagement;
 
 use Illuminate\Support\Str;
-use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
+use SolutionForest\FilamentAccessManagement\FilamentAccessManagement;
 
 if (! function_exists('filament_auth')) {
-    function filament_auth(): FilamentAuthenticate
+    function filament_auth(): FilamentAccessManagement
     {
-        return app(FilamentAuthenticate::class);
+        return app('filament-access-management');
     }
 }
 

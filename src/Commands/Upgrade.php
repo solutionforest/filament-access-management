@@ -35,6 +35,12 @@ class Upgrade extends Command
             ->where('is_filament_panel', false) // default value
             ->get();
 
+        if ($v1PathRecords->isEmpty()) {
+            $this->info('No legacy menu uri to upgrade.');
+
+            return;
+        }
+
         progress('Updating uri of menu as current version', count($v1PathRecords), function () use ($v1PathRecords) {
 
             foreach ($v1PathRecords as $v1PathRecord) {

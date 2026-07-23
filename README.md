@@ -15,6 +15,79 @@ This is an authentication plugin for Filament Admin with Laravel-permission
 | 2.x             | 3.x               |
 | 3.x             | 4.x / 5.x         |
 
+## Upgrade Guide
+
+This plugin follows the Filament major it targets. Upgrade the plugin **together with**
+Filament in a single Composer command, because the `2.x` line pins `filament/filament: ^3.0`
+and will block a Filament v4/v5 install. The steps below were verified against a real Laravel
+app upgraded **in place** (same database file) from Filament v3 → v4 → v5.
+
+### Requirements on your `User` model (all versions)
+
+The `FilamentUserHelpers` trait provides the permission helpers, but it does **not** implement
+Filament's `FilamentUser` contract. Outside the `local` environment Filament denies panel
+access (HTTP 403) to any user whose model does not implement it, so add `canAccessPanel()`
+yourself:
+
+```php
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
+
+class User extends Authenticatable implements FilamentUser
+{
+    use FilamentUserHelpers;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Per-page permissions are still enforced by this plugin's middleware.
+        return true;
+    }
+}
+```
+
+### Upgrading from Filament v3 (plugin 2.x) to Filament v4 (plugin 3.x)
+
+1. Move Filament and the plugin together:
+   ```bash
+   composer require "filament/filament:^4.0" "solution-forest/filament-access-management:^3.0" -W
+   ```
+   This also moves `solution-forest/filament-tree` (2 → 3) and `guava/filament-icon-picker` (2 → 3).
+2. Follow the [official Filament v3 → v4 upgrade guide](https://filamentphp.com/docs/4.x/upgrade-guide)
+   for **your own** app code (namespace changes, `Form` → `Schema`, action namespaces).
+3. Run migrations (no new column is added — `is_filament_panel` already ships in the
+   `upgrade_menu_table` migration) and rewrite any legacy `/admin/...` menu URIs:
+   ```bash
+   php artisan migrate
+   php artisan filament-access-management:upgrade
+   ```
+   `filament-access-management:upgrade` strips the `/admin` prefix from menu `uri`s and sets
+   `is_filament_panel = true`. It only touches rows whose `uri` is `/admin` or `/admin/%` **and**
+   `is_filament_panel = false`, so external URLs are left untouched and the command is idempotent
+   (a re-run with nothing to migrate exits cleanly).
+
+### Upgrading from Filament v4 to Filament v5 (both on plugin 3.x)
+
+Filament v5 requires **Laravel 12** (and pulls in **Livewire 4**), so bump them in the same step:
+
+```bash
+composer require "filament/filament:^5.0" "laravel/framework:^12.0" \
+  "solution-forest/filament-tree:^4.0" "solution-forest/filament-access-management:^3.0" -W
+```
+
+Then follow the official Filament v4 → v5 and Laravel 11 → 12 upgrade guides for your own code,
+run `php artisan migrate` (no-op) and re-run `php artisan filament-access-management:upgrade`.
+
+### Notes
+
+- **Clearing the permission cache:** the plugin caches per-user permissions. When you change a
+  user's roles/permissions **outside** the plugin's own resource pages (e.g. via a seeder or
+  Eloquent), call `\SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate::clearPermissionCache()`
+  so the change takes effect. The plugin's own Role/Permission pages clear it automatically on save.
+- After each upgrade, verify: the login page renders, the super admin can reach the User / Role /
+  Permission resources and the Menu page, a normal user is denied a protected page without the
+  matching permission and allowed with it, and `storage/logs/laravel.log` is clean.
+
 ## Installation
 
 1. Ensure you have already installed the Filament panel.

@@ -72,7 +72,16 @@ class FilamentAccessManagementPanel implements Plugin
             Action::configureUsing(function (Action $component) {
                 if (method_exists($component, 'getUrl')) {
                     $component->hidden(function () use ($component) {
-                        $url = $component->getUrl();
+                        // A record-bound action's URL (e.g. EditAction) requires the
+                        // {record} route parameter. When the action is evaluated
+                        // without a bound record (table render / header context),
+                        // getUrl() throws UrlGenerationException. Treat any
+                        // URL-resolution failure as "not URL-permission-gated".
+                        try {
+                            $url = $component->getUrl();
+                        } catch (\Throwable $e) {
+                            return false;
+                        }
 
                         if (empty($url)) {
                             return false;

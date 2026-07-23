@@ -2,10 +2,13 @@
 # filament-access-management
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/solution-forest/filament-access-management.svg?style=flat-square)](https://packagist.org/packages/solution-forest/filament-access-management)
+[![quick-test](https://github.com/solutionforest/filament-access-management/actions/workflows/quick-test.yml/badge.svg)](https://github.com/solutionforest/filament-access-management/actions/workflows/quick-test.yml)
 [![Total Downloads](https://img.shields.io/packagist/dt/solution-forest/filament-access-management.svg?style=flat-square)](https://packagist.org/packages/solution-forest/filament-access-management)
 
 
 This is an authentication plugin for Filament Admin with Laravel-permission
+
+> **Tests:** the [`quick-test`](.github/workflows/quick-test.yml) workflow runs the Pest suite on every push and every tag (PHP 8.4, Ubuntu). Latest local run on Filament v5.7.3: **111 passed**. A tag that fails the suite is deleted automatically.
 
 ## Compatibility
 

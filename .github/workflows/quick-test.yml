@@ -1,0 +1,46 @@
+name: quick-test
+
+# Runs a fast single-version test on every push and on every tag.
+# If a tag push fails the test, the tag is deleted again so a broken
+# release tag never sticks.
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '*'
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  pest:
+    name: Pest (PHP 8.4, ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, bcmath
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer config policy.advisories.block false
+          composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run Pest (quick test)
+        run: vendor/bin/pest
+
+      - name: Delete tag if the test failed
+        if: failure() && startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          echo "::error::Tests failed for tag ${tag} — deleting the tag."
+          git push --delete origin "${tag}"

@@ -1,8 +1,8 @@
 name: quick-test
 
-# Runs a fast single-version test on every push and on every tag.
-# If a tag push fails the test, the tag is deleted again so a broken
-# release tag never sticks.
+# Fast single-PHP test across the supported Filament majors (v4 and v5).
+# Runs on every push, PR and tag. If a tag fails the suite, the tag is
+# deleted again so a broken release tag never sticks.
 on:
   push:
     branches:
@@ -12,12 +12,23 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   pest:
-    name: Pest (PHP 8.4, ubuntu)
+    name: Pest (Filament ${{ matrix.filament }}, PHP 8.4)
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - filament: '^4.0'
+            tree: '^3.0'
+            iconpicker: '^3.0'
+          - filament: '^5.0'
+            tree: '^4.0'
+            iconpicker: '^4.0'
 
     steps:
       - name: Checkout
@@ -30,17 +41,35 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, bcmath
           coverage: none
 
+      - name: Constrain Filament ${{ matrix.filament }}
+        run: |
+          composer require --no-update --no-interaction \
+            "filament/filament:${{ matrix.filament }}" \
+            "solution-forest/filament-tree:${{ matrix.tree }}" \
+            "guava/filament-icon-picker:${{ matrix.iconpicker }}"
+
       - name: Install dependencies
         run: |
           composer config policy.advisories.block false
-          composer install --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run Pest (quick test)
         run: vendor/bin/pest
 
-      - name: Delete tag if the test failed
-        if: failure() && startsWith(github.ref, 'refs/tags/')
+  # If a tag push failed the suite above, delete the tag so it never sticks.
+  delete-failed-tag:
+    name: Delete tag on test failure
+    needs: pest
+    if: ${{ failure() && startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Delete the tag
         run: |
           tag="${GITHUB_REF#refs/tags/}"
           echo "::error::Tests failed for tag ${tag} — deleting the tag."
-          git push --delete origin "${tag}"
+          git push --delete origin "${tag}" || echo "Tag already removed."

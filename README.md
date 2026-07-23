@@ -119,6 +119,13 @@ php artisan migrate
 
 ## 🔼 Upgrade Guide
 
+> [!CAUTION]
+> ## ⚠️ BACK UP YOUR DATABASE FIRST ⚠️
+> Upgrading runs migrations and the `filament-access-management:upgrade` command **rewrites menu
+> data in place**. **Always take a full backup of your database (and code) before you start.**
+> Test the upgrade on a staging copy first, and never run it against production without a verified,
+> restorable backup. This operation can modify or delete rows and is **not automatically reversible**.
+
 This plugin follows the Filament major it targets. Upgrade the plugin **together with** Filament
 in a single Composer command, because the `2.x` line pins `filament/filament: ^3.0` and will block
 a Filament v4/v5 install. The steps below were verified against a real Laravel app upgraded
@@ -283,6 +290,10 @@ navigation with the database-driven menu from this package, edit
 ```bash
 composer test
 ```
+
+The [`quick-test`](.github/workflows/quick-test.yml) CI workflow runs the Pest suite against
+**both Filament v4 and Filament v5** (PHP 8.4, Ubuntu) on every push, PR and tag. A tag whose
+suite fails is deleted automatically.
 
 ## 📝 Changelog
 

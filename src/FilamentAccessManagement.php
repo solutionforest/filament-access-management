@@ -14,7 +14,6 @@ use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -48,7 +47,7 @@ class FilamentAccessManagement
     /**
      * Check user cached permissions.
      */
-    public function userPermissions(?Authenticatable $user = null): Collection
+    public function userPermissions(?Authenticatable $user = null)
     {
         $user ??= static::user();
 
@@ -57,10 +56,16 @@ class FilamentAccessManagement
             Utils::getUserPermissionCacheExpirationTime(),
             function () use ($user) {
                 $tags = Cache::get(Utils::getUserPermissionCacheTag());
+
                 if (is_null($tags)) {
                     $tags = [];
                 }
-                $tags = array_unique(array_merge($tags, [Utils::getUserPermissionCacheKey($user)]));
+
+                $tags = collect($tags)
+                    ->merge([Utils::getUserPermissionCacheKey($user)])
+                    ->unique()
+                    ->all();
+
                 Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
 
                 return method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect();

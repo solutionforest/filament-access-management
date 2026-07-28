@@ -144,7 +144,7 @@ class Permission
             return true;
         }
 
-        $permissions = FilamentAuthenticate::userPermissions($user)
+        $permissions = collect(FilamentAuthenticate::userPermissions($user))
             ->filter(function ($permission) use ($path) {
                 if (empty($permission->http_path)) {
                     return false;

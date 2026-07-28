@@ -47,9 +47,10 @@ class Menu extends TreePage
 
             IconPicker::make('icon')
                 ->label(__('filament-access-management::filament-access-management.field.menu.icon'))
-                ->gridSearchResults()
+                ->iconsSearchResults()
                 ->helperText('Menu item must contain the icon.')
-                ->default(Utils::getFilamentDefaultIcon()),
+                ->default(Utils::getFilamentDefaultIcon())
+                ->extraAttributes((['class' => 'guava-filament-icon-picker'])),
 
             Select::make('parent_id')
                 ->label(__('filament-access-management::filament-access-management.field.menu.parent'))

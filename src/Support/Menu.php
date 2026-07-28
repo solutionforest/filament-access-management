@@ -21,7 +21,8 @@ class Menu
     /**
      * Get or create a navigation item from db.
      */
-    public static function createNavigation(string $title,
+    public static function createNavigation(
+        string $title,
         ?int $parent = null,
         ?string $icon = null,
         ?string $activeIcon = null,
@@ -59,14 +60,16 @@ class Menu
 
     /**
      * Get all navigation items from db.
+     *
+     * @return Collection<Model>
      */
     public static function getAllNavigation(): Collection
     {
-        return Cache::remember(
+        return collect(Cache::remember(
             static::getCacheKey(),
             static::getCacheExpirationTime(),
-            fn () => collect(Utils::getMenuModel()::ordered()->get())
-        );
+            fn () => Utils::getMenuModel()::ordered()->get()->toArray()
+        ));
     }
 
     /**
@@ -77,18 +80,19 @@ class Menu
     public static function getNavigationGroups()
     {
         $model = app(Utils::getMenuModel());
-        $nodes = static::getAllNavigation();
 
         $titleColumnName = method_exists($model, 'determineTitleColumnName') ? $model->determineTitleColumnName() : 'title';
         $childrenKeyName = FilamentTree\Support\Utils::defaultChildrenKeyName();
 
+        $allNavigationNodes = static::getAllNavigation();
+
         $tree = [];
 
         if (method_exists($model, 'toTree')) {
-            $tree = $model->toTree($nodes);
+            $tree = $model->toTree($allNavigationNodes);
         } else {
             $tree = FilamentTree\Support\Utils::buildNestedArray(
-                nodes: static::getAllNavigation(),
+                nodes: $allNavigationNodes,
                 parentId: null,
                 primaryKeyName: method_exists($model, 'getKeyName') ? $model->getKeyName() : null,
                 parentKeyName: method_exists($model, 'determineParentColumnName') ? $model->determineParentColumnName() : null,
@@ -146,6 +150,38 @@ class Menu
     public static function getCacheExpirationTime(): DateInterval|int
     {
         return config('filament-access-management.cache.navigation.expiration_time') ?: DateInterval::createFromDateString('24 hours');
+    }
+
+    public static function normalizeIcon(mixed $icon): ?string
+    {
+        $heroiconEnumFqcn = 'Filament\\Support\\Icons\\Heroicon';
+
+        if (is_a($icon, 'BackedEnum') || is_a($icon, 'UnitEnum')) {
+            if (property_exists($icon, 'value')) {
+                $icon = $icon->value;
+            } else {
+                $icon = (string) $icon;
+            }
+        }
+
+        // Saft handle heroicon value
+        $heroIconEnumFqcn = 'Filament\\Support\\Icons\\Heroicon';
+        if (
+            enum_exists($heroIconEnumFqcn)
+            && method_exists($heroIconEnumFqcn, 'tryFrom')
+            && ($heroIconEnum = $heroiconEnumFqcn::tryFrom($icon)) !== null
+        ) {
+            // Add missing heroicon- prefix if not present
+            if (! str($icon)->startsWith('heroicon-')) {
+                return 'heroicon-'.$icon;
+            }
+        }
+
+        if (! is_string($icon)) {
+            return null;
+        }
+
+        return $icon;
     }
 
     private static function handleTranslatable(array &$final): void

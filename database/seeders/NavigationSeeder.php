@@ -79,8 +79,8 @@ class NavigationSeeder extends Seeder
                 $helper->createNavigation(
                     title: $navItem->getLabel(),
                     parent: $parentId,
-                    icon: $navItem->getIcon(),
-                    activeIcon: $navItem->getActiveIcon(),
+                    icon: $helper->normalizeIcon($navItem->getIcon()),
+                    activeIcon: $helper->normalizeIcon($navItem->getActiveIcon()),
                     // uri: admin_base_path($navItem->getUrl()),
                     uri: $navItem->getUrl(),
                     badge: $navItem->getBadge(),

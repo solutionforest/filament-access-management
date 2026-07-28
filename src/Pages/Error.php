@@ -2,13 +2,12 @@
 
 namespace SolutionForest\FilamentAccessManagement\Pages;
 
-use Closure;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\Route;
+use Filament\Panel;
 
 class Error extends Page
 {
-    protected static string $view = 'filament-access-management::pages.error';
+    protected string $view = 'filament-access-management::pages.error';
 
     public $code;
 
@@ -17,7 +16,7 @@ class Error extends Page
         $this->code = $code;
     }
 
-    public static function getSlug(): string
+    public static function getSlug(?Panel $panel = null): string
     {
         return 'error/{code?}';
     }

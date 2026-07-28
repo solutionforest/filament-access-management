@@ -1,0 +1,181 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Class App\\Models\\User not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: config/filament-access-management.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/seeders/NavigationSeeder.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:givePermissionTo\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: database/seeders/UserPermissionSeeder.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Commands/MakeSuperAdminUser.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:assignRole\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Commands/MakeSuperAdminUser.php
+
+		-
+			message: '#^Trait SolutionForest\\FilamentAccessManagement\\Concerns\\FilamentUser is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/FilamentUser.php
+
+		-
+			message: '#^Trait SolutionForest\\FilamentAccessManagement\\Concerns\\FilamentUserHelpers is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/FilamentUserHelpers.php
+
+		-
+			message: '#^Instanceof between Filament\\Navigation\\NavigationGroup and Filament\\Navigation\\NavigationGroup will always evaluate to true\.$#'
+			identifier: instanceof.alwaysTrue
+			count: 1
+			path: src/FilamentAccessManagement.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Filament\\Actions\\Action and ''getUrl'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/FilamentAccessManagementPanel.php
+
+		-
+			message: '#^Method SolutionForest\\FilamentAccessManagement\\FilamentAccessManagementPanel\:\:get\(\) should return static\(SolutionForest\\FilamentAccessManagement\\FilamentAccessManagementPanel\) but returns Filament\\Contracts\\Plugin\|Filament\\FilamentManager\.$#'
+			identifier: return.type
+			count: 1
+			path: src/FilamentAccessManagementPanel.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Foundation\\Auth\\User\:\:\$roles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Foundation\\Auth\\User\:\:inRoles\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Method SolutionForest\\FilamentAccessManagement\\Http\\Auth\\Permission\:\:check\(\) should return void\|true but returns array\<string, bool\>\|bool\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Relation ''roles'' is not found in Illuminate\\Foundation\\Auth\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Http/Auth/Permission.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Http/Middleware/Authenticate.php
+
+		-
+			message: '#^Access to an undefined property SolutionForest\\FilamentAccessManagement\\Models\\Menu\:\:\$is_filament_panel\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Models/Menu.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Models/Menu.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Resources/PermissionResource.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:roles\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Resources/PermissionResource/Pages/ListPermissions.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Resources/RoleResource.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Resources/UserResource.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Unsafe call to private method SolutionForest\\FilamentAccessManagement\\Support\\Menu\:\:buildNavigationGroupItems\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Unsafe call to private method SolutionForest\\FilamentAccessManagement\\Support\\Menu\:\:ensureNavigationLabel\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Unsafe call to private method SolutionForest\\FilamentAccessManagement\\Support\\Menu\:\:handleTranslatable\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Variable \$groupIcon on left side of \?\? is never defined\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Variable \$groupLabel on left side of \?\? is never defined\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/Support/Menu.php
+
+		-
+			message: '#^Call to function is_null\(\) with string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/helpers.php

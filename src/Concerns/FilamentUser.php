@@ -37,7 +37,16 @@ trait FilamentUser
 
     public function getCachedPermissions(): Collection
     {
-        return
-        FilamentAuthenticate::userPermissions($this);
+        return FilamentAuthenticate::userPermissions($this);
+    }
+
+    /**
+     * Determine if the user has any of the given roles.
+     *
+     * @param  string|int|array|\Illuminate\Contracts\Support\Arrayable|\BackedEnum  $roles
+     */
+    public function inRoles($roles): bool
+    {
+        return $this->hasAnyRole($roles);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 
-use Filament\Pages\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\ViewRecord;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 
@@ -13,7 +13,7 @@ class ViewUser extends ViewRecord
     protected function getActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

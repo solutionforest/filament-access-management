@@ -3,20 +3,25 @@
 namespace SolutionForest\FilamentAccessManagement;
 
 use Closure;
+use Exception;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Support\Menu;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
 class FilamentAccessManagement
 {
@@ -29,12 +34,12 @@ class FilamentAccessManagement
     /**
      * Get user model.
      */
-    public function user(): \Illuminate\Contracts\Auth\Authenticatable|null
+    public function user(): ?Authenticatable
     {
         return static::guard()->user();
     }
 
-    public function guard(): \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard
+    public function guard(): Guard|StatefulGuard
     {
         return Auth::guard(Utils::getFilamentAuthGuard() ?: 'web');
     }
@@ -42,7 +47,7 @@ class FilamentAccessManagement
     /**
      * Check user cached permissions.
      */
-    public function userPermissions(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): Collection
+    public function userPermissions(?Authenticatable $user = null)
     {
         $user ??= static::user();
 
@@ -51,10 +56,16 @@ class FilamentAccessManagement
             Utils::getUserPermissionCacheExpirationTime(),
             function () use ($user) {
                 $tags = Cache::get(Utils::getUserPermissionCacheTag());
+
                 if (is_null($tags)) {
                     $tags = [];
                 }
-                $tags = array_unique(array_merge($tags, [Utils::getUserPermissionCacheKey($user)]));
+
+                $tags = collect($tags)
+                    ->merge([Utils::getUserPermissionCacheKey($user)])
+                    ->unique()
+                    ->all();
+
                 Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
 
                 return method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect();
@@ -65,7 +76,7 @@ class FilamentAccessManagement
     public function clearPermissionCache(): void
     {
         // Spatie/Permission cache
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Custom cache
         if ($tags = Cache::get(Utils::getUserPermissionCacheTag())) {
@@ -114,19 +125,21 @@ class FilamentAccessManagement
      */
     public function shouldPassThrough(string|Request $request): bool
     {
-        $fiPanel = Filament::getCurrentPanel();
+        $fiPanel = Filament::getCurrentOrDefaultPanel();
 
         $excepts = array_values(Arr::whereNotNull(array_unique(
             array_merge(
                 [
                     $fiPanel->getPath(),
-                    (string)str($fiPanel->getPath())->append('/error*'),
-                    $fiPanel->getLoginUrl(),
-                    $fiPanel->getLogoutUrl(),
-                    (string)str($fiPanel->getPath())->append('/assets*'),
+                    (string) str($fiPanel->getPath())->append('/error*'),
+                    // getLoginUrl()/getLogoutUrl() return absolute URLs; reduce them to
+                    // their path component so they match request paths (e.g. logout).
+                    parse_url((string) $fiPanel->getLoginUrl(), PHP_URL_PATH),
+                    parse_url((string) $fiPanel->getLogoutUrl(), PHP_URL_PATH),
+                    (string) str($fiPanel->getPath())->append('/assets*'),
                 ],
                 array_map(
-                    fn ($except) => (string)str($fiPanel->getPath())->append($except),
+                    fn ($except) => (string) str($fiPanel->getPath())->append($except),
                     (array) config('filament-access-management.auth.except', [])
                 ),
             )
@@ -142,7 +155,7 @@ class FilamentAccessManagement
                 }
             }
 
-            $current = (string)str($fiPanel->getPath())
+            $current = (string) str($fiPanel->getPath())
                 ->append('/')
                 ->append(ltrim($current, '/'));
 
@@ -257,7 +270,7 @@ class FilamentAccessManagement
     }
 
     /**
-     * @param string[]|NavigationGroup[] $groups
+     * @param  string[]|NavigationGroup[]  $groups
      */
     public function registerNavigationGroups(array $groups): void
     {
@@ -265,7 +278,7 @@ class FilamentAccessManagement
     }
 
     /**
-     * @param Navigation\NavigationItem[] $items
+     * @param  Navigation\NavigationItem[]  $items
      */
     public function registerNavigationItems(array $items): void
     {
@@ -298,8 +311,8 @@ class FilamentAccessManagement
             try {
                 /** @var NavigationBuilder */
                 $result = $builder(app(NavigationBuilder::class));
-            } catch (\Throwable $e) {
-                throw new \Exception(message: 'Failed to create navigation builder', previous: $e);
+            } catch (Throwable $e) {
+                throw new Exception(message: 'Failed to create navigation builder', previous: $e);
             }
         }
         $result->groups(collect($groups)->map(fn (NavigationGroup|string $group) => $group instanceof NavigationGroup ? $group : NavigationGroup::make()->label($group))->toArray());

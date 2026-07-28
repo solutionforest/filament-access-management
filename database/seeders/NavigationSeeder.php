@@ -5,7 +5,9 @@ namespace SolutionForest\FilamentAccessManagement\Database\Seeders;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
+use Filament\Pages\Page;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
@@ -24,19 +26,21 @@ class NavigationSeeder extends Seeder
 
         $resources = Utils::getResources();
 
-        /** @var \Illuminate\Support\Collection<array-key, \Illuminate\Support\Collection<array-key, \Filament\Navigation\NavigationItem>> */
+        $panel = Filament::getCurrentOrDefaultPanel();
+
+        /** @var Collection<array-key, Collection<array-key, NavigationItem>> */
         $navigationGroup = collect(array_merge($pages, $resources))
             ->filter(fn ($item) => is_string($item) && method_exists($item, 'getNavigationItems'))
-            ->map(function ($itemFQCN) {
+            ->map(function ($itemFQCN) use ($panel) {
                 if (is_subclass_of($itemFQCN, \Filament\Resources\Pages\Page::class) ||
-                    is_subclass_of($itemFQCN, \Filament\Pages\Page::class)) {
+                    is_subclass_of($itemFQCN, Page::class)) {
 
-                    $path = $itemFQCN::getRoutePath();
+                    $path = $itemFQCN::getRoutePath($panel);
 
                 } elseif (is_subclass_of($itemFQCN, \Filament\Resources\Resource::class)) {
                     try {
 
-                        $path = (string)str($itemFQCN::getRoutePrefix())->prepend('/')->rtrim('/');
+                        $path = (string) str($itemFQCN::getRoutePrefix($panel))->prepend('/')->rtrim('/');
 
                     } catch (\Exception $e) {
                         return null;
@@ -45,6 +49,7 @@ class NavigationSeeder extends Seeder
                 } else {
                     return null;
                 }
+
                 return NavigationItem::make($itemFQCN::getNavigationLabel())
                     ->group($itemFQCN::getNavigationGroup())
                     ->parentItem($itemFQCN::getNavigationParentItem())
@@ -55,7 +60,7 @@ class NavigationSeeder extends Seeder
                     ->badge($itemFQCN::getNavigationBadge(), color: $itemFQCN::getNavigationBadgeColor())
                     ->badgeTooltip($itemFQCN::getNavigationBadgeTooltip())
                     ->url($path);
-                    // ->url($itemFQCN::getNavigationUrl());
+                // ->url($itemFQCN::getNavigationUrl());
             })
             ->filter()
             ->groupBy(fn (NavigationItem $navItem) => $navItem->getGroup())
@@ -63,7 +68,7 @@ class NavigationSeeder extends Seeder
 
         foreach ($navigationGroup as $groupName => $collect) {
             $parentId = -1;
-            if (!empty($groupName)) {
+            if (! empty($groupName)) {
                 $parent = $helper->getNavigation($groupName, -1);
                 if (! $parent) {
                     $parent = $helper->createNavigation($groupName);
@@ -74,8 +79,8 @@ class NavigationSeeder extends Seeder
                 $helper->createNavigation(
                     title: $navItem->getLabel(),
                     parent: $parentId,
-                    icon: $navItem->getIcon(),
-                    activeIcon: $navItem->getActiveIcon(),
+                    icon: $helper->normalizeIcon($navItem->getIcon()),
+                    activeIcon: $helper->normalizeIcon($navItem->getActiveIcon()),
                     // uri: admin_base_path($navItem->getUrl()),
                     uri: $navItem->getUrl(),
                     badge: $navItem->getBadge(),

@@ -1,24 +1,63 @@
+<p align="center">
+  <a href="https://solutionforest.com" target="_blank">
+    <img src="https://github.com/solutionforest/.github/blob/main/docs/images/sf.png?raw=true" width="200" alt="Solution Forest">
+  </a>
+</p>
 
-# filament-access-management
+<h1 align="center">Filament Access Management</h1>
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/solution-forest/filament-access-management.svg?style=flat-square)](https://packagist.org/packages/solution-forest/filament-access-management)
-[![Total Downloads](https://img.shields.io/packagist/dt/solution-forest/filament-access-management.svg?style=flat-square)](https://packagist.org/packages/solution-forest/filament-access-management)
+<p align="center">
+  Role & permission management for <a href="https://filamentphp.com">Filament</a>, powered by
+  <a href="https://spatie.be/docs/laravel-permission">spatie/laravel-permission</a> — with a
+  path-based access gate, a database-driven navigation menu, and a one-command super-admin setup.
+</p>
 
+<p align="center">
+  <a href="https://packagist.org/packages/solution-forest/filament-access-management"><img src="https://img.shields.io/packagist/v/solution-forest/filament-access-management.svg?style=flat-square" alt="Latest Version on Packagist"></a>
+  <a href="https://github.com/solutionforest/filament-access-management/actions/workflows/quick-test.yml"><img src="https://github.com/solutionforest/filament-access-management/actions/workflows/quick-test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://packagist.org/packages/solution-forest/filament-access-management"><img src="https://img.shields.io/packagist/dt/solution-forest/filament-access-management.svg?style=flat-square" alt="Total Downloads"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/packagist/l/solution-forest/filament-access-management.svg?style=flat-square" alt="License"></a>
+</p>
 
-This is an authentication plugin for Filament Admin with Laravel-permission
+---
 
-## Installation
+## ✨ Features
 
-1. Ensure you have already installed the Filament panel.
-2. You can install the package via composer:
+- 👥 **Users, Roles & Permissions** resources ready to use out of the box.
+- 🛡️ **Path-based access control** — bind permissions to HTTP paths (`/users`, `/users/*/edit`), methods, or route aliases.
+- 👑 **Super-admin bypass** — a configurable super-admin role that skips every gate.
+- 🌳 **Database-driven navigation menu** — optional tree menu that can replace Filament's default navigation.
+- ⚡ **One-command setup** — `filament-access-management:install` scaffolds everything and creates your first super admin.
+- 🔀 **Filament v3, v4 & v5** support (see the compatibility table below).
+
+## 📋 Compatibility
+
+| Plugin version | Filament version |
+| -------------- | ---------------- |
+| 1.x            | 2.x              |
+| 2.x            | 3.x              |
+| 3.x            | 4.x / 5.x        |
+
+> [!NOTE]
+> This plugin depends on [guava/filament-icon-picker](https://github.com/GuavaCZ/filament-icon-picker)
+> for the icon selection UI. If you encounter any errors related to the icon picker, consult the
+> [icon picker documentation](https://github.com/GuavaCZ/filament-icon-picker).
+>
+> **Known issue with Filament v5:** see
+> [GuavaCZ/filament-icon-picker#70](https://github.com/GuavaCZ/filament-icon-picker/issues/70).
+
+## 📦 Installation
+
+1. Ensure you have already installed a [Filament panel](https://filamentphp.com/docs/panels/installation).
+2. Install the package via Composer:
+
     ```bash
     composer require solution-forest/filament-access-management
     ```
-    
-3. Add the necessary trait to your User model:
+
+3. Add the necessary trait to your `User` model:
 
     ```php
-
     use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 
     class User extends Authenticatable
@@ -26,175 +65,305 @@ This is an authentication plugin for Filament Admin with Laravel-permission
         use FilamentUserHelpers;
     }
     ```
-    
-4. **Clear your config cache**:
-   ```bash
+
+    > **Panel access (production):** the trait provides the permission helpers but does **not**
+    > implement Filament's `FilamentUser` contract. Outside the `local` environment Filament denies
+    > panel access (HTTP 403) to any user whose model doesn't implement it, so also add
+    > `canAccessPanel()` — see the [Upgrade Guide](#-upgrade-guide).
+
+4. Clear your config cache:
+
+    ```bash
     php artisan optimize:clear
     # or
     php artisan config:clear
-   ```
+    ```
 
-5. Register the plugin in your Panel provider:
-   > **Important:  Register the plugin in your Panel provider after version 2.x**
-   ``` bash
-    use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
- 
+5. Register the plugin in your panel provider (**required from v2.x onwards**):
+
+    ```php
+    use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPlugin;
+
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->plugin(FilamentAccessManagementPanel::make());
+            ->plugin(FilamentAccessManagementPlugin::make());
     }
-   ```
+    ```
 
-6. Then execute the following commands:
-   ```bash
-   php artisan filament-access-management:install
-   ```
-   If you don't already have a user named `admin`, this command creates a **Super Admin User** with the following credentials:
+6. Run the installer:
 
-    - Name: admin
-    - E-mail address: admin@("slug" pattern from config("app.name")).com
-    - Password: admin
+    ```bash
+    php artisan filament-access-management:install
+    ```
 
-    You can also create the super admin user with:
+    If you don't already have a user named `admin`, this creates a **Super Admin User**:
+
+    | Field    | Value                                                |
+    | -------- | ---------------------------------------------------- |
+    | Name     | `admin`                                              |
+    | Email    | `admin@("slug" pattern from config("app.name")).com` |
+    | Password | `admin`                                              |
+
+    You can also create one anytime with:
 
     ```bash
     php artisan make:super-admin-user
     ```
 
-6. Call upgrade command to upgrade data after version **2.2.0**
+7. If you are upgrading data from **before v2.2.0**, run:
+
     ```bash
     php artisan filament-access-management:upgrade
     ```
 
-
-## Publish Configs, Views, Translations and Migrations
-
-You can publish the configs, views, translations and migrations with:
+## 🗂️ Publish Configs, Views, Translations and Migrations
 
 ```bash
 php artisan vendor:publish --tag="filament-access-management-config"
-
 php artisan vendor:publish --tag="filament-access-management-views"
-
 php artisan vendor:publish --tag="filament-access-management-translations"
-
 php artisan vendor:publish --tag="filament-access-management-migrations"
 ```
 
-## Migration
+Then run the migrations:
 
 ```bash
 php artisan migrate
 ```
 
-## Usage
+## 🔼 Upgrade Guide
 
-Upon installation, "Menu", "Users", "Roles" and "Permissions" pages will be created. Each user have roles and each role have permissions.
+> [!CAUTION]
+>
+> ## ⚠️ BACK UP YOUR DATABASE FIRST ⚠️
+>
+> Upgrading runs migrations and the `filament-access-management:upgrade` command **rewrites menu
+> data in place**. **Always take a full backup of your database (and code) before you start.**
+> Test the upgrade on a staging copy first, and never run it against production without a verified,
+> restorable backup. This operation can modify or delete rows and is **not automatically reversible**.
 
-![image](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
+This plugin follows the Filament major it targets. Upgrade the plugin **together with** Filament
+in a single Composer command, because the `2.x` line pins `filament/filament: ^3.0` and will block
+a Filament v4/v5 install. The steps below were verified against a real Laravel app upgraded
+**in place** (same database file) from Filament v3 → v4 → v5.
 
-Manage Menu:
-![image](https://user-images.githubusercontent.com/73818060/232438118-0b4089e7-4ff0-40b8-93b1-c6d4c089ef14.png)
+### Requirements on your `User` model (all versions)
 
-Manage Users and their roles:
-![image](https://user-images.githubusercontent.com/73818060/232437828-73039db1-8976-4a23-a14d-2943d9495a47.png)
-![image](https://user-images.githubusercontent.com/73818060/232437890-2db887e1-dcbb-4d96-b072-365720be66d7.png)
+Add the `FilamentUser` contract and `canAccessPanel()` so the panel isn't 403'd outside `local`:
 
-Manage Roles and their permissions:
-![image](https://user-images.githubusercontent.com/73818060/232438496-002b56d6-db98-4672-82cc-efcfc06fba9e.png)
-![image](https://user-images.githubusercontent.com/73818060/232438548-29b655bc-d683-4924-90b7-6ba25991d7ff.png)
+```php
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 
-Manage Permissions:
-![image](https://user-images.githubusercontent.com/73818060/232438632-e5d9a5e5-7ef5-4ca5-a330-37948acd9748.png)
-![image](https://user-images.githubusercontent.com/73818060/232438719-fc2bca0b-7233-4aae-bf87-9c1d8524e42d.png)
+class User extends Authenticatable implements FilamentUser
+{
+    use FilamentUserHelpers;
 
-## Routing control
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Per-page permissions are still enforced by this plugin's middleware.
+        return true;
+    }
+}
+```
 
-In this plugin, permissions and routes are bound together, set the routes that the current permissions can access in the edit permissions page, select the method to access the routes in the `HTTP method` select box, and fill in the path that can be accessed in the `HTTP path`.
+### Filament v3 (plugin 2.x) → Filament v4 (plugin 3.x)
 
-For example, if you want to add a permission, which can access the path `/admin/users` by `GET`, then `HTTP method` select `GET`, and `HTTP path` fill in `/users`.
+1. Move Filament and the plugin together:
 
+    ```bash
+    composer require "filament/filament:^4.0" "solution-forest/filament-access-management:^3.0" -W
+    ```
 
-If you want to access all the paths prefixed with `/admin/users`, then `HTTP path` fill in `/users*`; if you want to access the edit page, then `HTTP path` fill in `/users/*/edit`; if the method of each path in multiple paths is different, then `HTTP path` fill in `GET:users/*'. `.
+    This also moves `solution-forest/filament-tree` (2 → 3) and `guava/filament-icon-picker` (2 → 3).
 
+2. Follow the [official Filament v3 → v4 upgrade guide](https://filamentphp.com/docs/4.x/upgrade-guide)
+   for **your own** app code (namespace changes, `Form` → `Schema`, action namespaces).
+3. Run migrations (no new column is added — `is_filament_panel` already ships in the
+   `upgrade_menu_table` migration) and rewrite any legacy `/admin/...` menu URIs:
 
-If the above method is not sufficient, `HTTP path` also supports **routing aliases**, such as `admin.users.show`.
+    ```bash
+    php artisan migrate
+    php artisan filament-access-management:upgrade
+    ```
 
-## Super Administrator
+    `filament-access-management:upgrade` strips the `/admin` prefix from menu `uri`s and sets
+    `is_filament_panel = true`. It only touches rows whose `uri` is `/admin` or `/admin/%` **and**
+    `is_filament_panel = false`, so external URLs are left untouched and the command is idempotent
+    (a re-run with nothing to migrate exits cleanly).
 
-Create super admin user:
+### Filament v4 → Filament v5 (both on plugin 3.x)
+
+Filament v5 requires **Laravel 12** (and pulls in **Livewire 4**), so bump them in the same step:
 
 ```bash
+composer require "filament/filament:^5.0" "laravel/framework:^12.0" \
+  "solution-forest/filament-tree:^4.0" "solution-forest/filament-access-management:^3.0" -W
+```
 
+Then follow the official Filament v4 → v5 and Laravel 11 → 12 upgrade guides for your own code,
+run `php artisan migrate` (no-op) and re-run `php artisan filament-access-management:upgrade`.
+
+### Notes
+
+- **Clearing the permission cache:** the plugin caches per-user permissions. When you change a
+  user's roles/permissions **outside** the plugin's own resource pages (e.g. via a seeder or
+  Eloquent), call
+  `\SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate::clearPermissionCache()`
+  so the change takes effect. The plugin's own Role/Permission pages clear it automatically on save.
+- **After each upgrade, verify:** the login page renders, the super admin can reach the User / Role /
+  Permission resources and the Menu page, a normal user is denied a protected page without the
+  matching permission and allowed with it, and `storage/logs/laravel.log` is clean.
+
+## 🚀 Usage
+
+Upon installation, **Menu**, **Users**, **Roles** and **Permissions** pages are created. Each user
+has roles, and each role has permissions.
+
+<details open>
+<summary><b>Menu, Users, Roles & Permissions</b></summary>
+
+![Overview](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
+
+**Manage Menu**
+
+![Manage Menu](https://user-images.githubusercontent.com/73818060/232438118-0b4089e7-4ff0-40b8-93b1-c6d4c089ef14.png)
+
+**Manage Users and their roles**
+
+![Manage Users](https://user-images.githubusercontent.com/73818060/232437828-73039db1-8976-4a23-a14d-2943d9495a47.png)
+![User roles](https://user-images.githubusercontent.com/73818060/232437890-2db887e1-dcbb-4d96-b072-365720be66d7.png)
+
+**Manage Roles and their permissions**
+
+![Manage Roles](https://user-images.githubusercontent.com/73818060/232438496-002b56d6-db98-4672-82cc-efcfc06fba9e.png)
+![Role permissions](https://user-images.githubusercontent.com/73818060/232438548-29b655bc-d683-4924-90b7-6ba25991d7ff.png)
+
+**Manage Permissions**
+
+![Manage Permissions](https://user-images.githubusercontent.com/73818060/232438632-e5d9a5e5-7ef5-4ca5-a330-37948acd9748.png)
+![Permission detail](https://user-images.githubusercontent.com/73818060/232438719-fc2bca0b-7233-4aae-bf87-9c1d8524e42d.png)
+
+</details>
+
+### Routing control
+
+Permissions and routes are bound together. On the edit-permission page, set the routes a
+permission can access: choose the method in the **HTTP method** select box, and fill the accessible
+path in **HTTP path**.
+
+| Goal                                  | HTTP path                             |
+| ------------------------------------- | ------------------------------------- |
+| Access`GET /admin/users`              | `/users` (with `HTTP method` = `GET`) |
+| Access everything under`/admin/users` | `/users*`                             |
+| Access the edit page only             | `/users/*/edit`                       |
+| Different method per path             | `GET:users/*`                         |
+| Use a route alias                     | `admin.users.show`                    |
+
+### Super Administrator
+
+Create a super admin user:
+
+```bash
 php artisan make:super-admin-user
-
 ```
 
-Check permission:
-```bash
+Check a permission:
 
-# Check by permission's name
-\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::check($name)
+```php
+// Check by permission's name
+\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::check($name);
 
-# Check by http_path
-\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::checkPermission($path)
-
+// Check by http_path
+\SolutionForest\FilamentAccessManagement\Http\Auth\Permission::checkPermission($path);
 ```
 
-Get current user:
-``` bash
+Get the current user:
 
+```php
 \SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate::user();
-
 ```
 
-## Advance Usage
+## 🧩 Advanced Usage
 
-In default, the menu created will co-exist with the original menu of filament. To override the original menu with the menu from this package, modify `/config/filament-access-management.php` as following:
+By default the plugin's menu **co-exists** with Filament's native navigation. To replace the native
+navigation with the database-driven menu from this package, edit
+`/config/filament-access-management.php` and set `filament.navigation.enabled => true`:
 
-1. Set ```filament.navigation.enabled => true```
-
-``` php
-
-    'filament' => [
-        ...
-        'navigation' => [
-            /**
-             * Using db based filament navigation if true.
-             */
-            'enabled' => true,
-            /**
-             * Table name db based filament navigation.
-             */
-            'table_name' => 'filament_menu',
-            /**
-             * Filament Menu Model.
-             */
-            'model' => Models\Menu::class,
-        ]
-        ...
-    ]
-
+```php
+'filament' => [
+    // ...
+    'navigation' => [
+        // Use db-based Filament navigation when true.
+        'enabled'    => true,
+        // Table name for the db-based navigation.
+        'table_name' => 'filament_menu',
+        // Filament Menu model.
+        'model'      => Models\Menu::class,
+    ],
+    // ...
+],
 ```
 
-## Changelog
+## 🧪 Testing
+
+```bash
+composer test
+```
+
+The [`quick-test`](.github/workflows/quick-test.yml) CI workflow runs the Pest suite against
+**both Filament v4 and Filament v5** (PHP 8.4, Ubuntu) on every push, PR and tag. A tag whose
+suite fails is deleted automatically.
+
+## 📝 Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
-## Contributing
+## 🤝 Contributing
 
 Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
-## Security Vulnerabilities
+## 🔒 Security Vulnerabilities
 
 Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
-## Credits
+## 👏 Credits
 
 - [Carly](https://github.com/n/a)
 - [All Contributors](../../contributors)
 
-## License
+---
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+## 🌲 About Solution Forest
+
+<p>
+  <a href="https://solutionforest.com" target="_blank">
+    <img src="https://github.com/solutionforest/.github/blob/main/docs/images/sf.png?raw=true" width="160" alt="Solution Forest">
+  </a>
+</p>
+
+[Solution Forest](https://solutionforest.com) is a web development agency based in Hong Kong. We help
+customers solve their problems — and we ❤️ open source.
+
+**Our products**
+
+- [Vxero Neo](https://neo.vxero.dev) — Deploy to any VPS from your terminal.
+- [Vxero](https://vxero.com) — Deploy without DevOps complexity.
+- [InspireCMS](https://inspirecms.net) — A full-featured Laravel CMS with everything you need out of the box.
+- [Filaletter](https://filaletter.solutionforest.net) — Filament newsletter plugin.
+- [Website CMS Management](https://filamentphp.com/plugins/solution-forest-cms-website) — A hands-on Filament CMS plugin.
+
+**Open source**
+
+- [ForgeDesk](https://github.com/solutionforest/ForgeDesk) — Zero-config developer tools. One click to install, one click to run.
+- [Watchdog](https://github.com/solutionforest/Watchdog) — An uptime monitor desktop application.
+- [ocpp-php](https://github.com/solutionforest/ocpp-php) — PHP implementation of the Open Charge Point Protocol (OCPP).
+- [Filament plugins](https://github.com/solutionforest?q=filament) — Our Filament plugin collection.
+
+You can also sponsor our open source work [via GitHub Sponsors](https://github.com/sponsors/solutionforest). 💚
+
+## 📄 License
+
+The MIT License (MIT). Please see the [License File](LICENSE.md) for more information.

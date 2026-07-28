@@ -36,11 +36,11 @@ class MakeSuperAdminUser extends Command
         return static::SUCCESS;
     }
 
-    protected function getUserCheckKeys(): array {
+    protected function getUserCheckKeys(): array
+    {
         return [
-            'email' => $this->validateInput(fn () => 
-                $this->options['email'] ?? 
-                $this->ask('Email address'), 'email', array_merge(['required', 'email'], $this->option('force') ? [] : ['unique:'.$this->getUserModel()]), 
+            'email' => $this->validateInput(fn () => $this->options['email'] ??
+                $this->ask('Email address'), 'email', array_merge(['required', 'email'], $this->option('force') ? [] : ['unique:'.$this->getUserModel()]),
                 fn () => $this->options['email'] = null),
         ];
     }
@@ -62,10 +62,12 @@ class MakeSuperAdminUser extends Command
             foreach ($checkKeys as $key => $value) {
                 $query = $query->where($key, $value);
             }
+
             return $query->first();
         }
 
         $data = array_merge($checkKeys, $this->getUserData());
+
         return static::getUserModel()::create($data);
     }
 

@@ -2,10 +2,16 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\AttachAction;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DetachAction;
+use Filament\Actions\DetachBulkAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 
@@ -15,21 +21,21 @@ class PermissionsRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(2)->schema([
-                    Forms\Components\TextInput::make('name')
+        return $schema
+            ->components([
+                Grid::make(2)->schema([
+                    TextInput::make('name')
                         ->required()
                         ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                    Forms\Components\TextInput::make('guard_name')
+                    TextInput::make('guard_name')
                         ->required()
                         ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                         ->default(config('auth.defaults.guard')),
 
-                    Forms\Components\Select::make('http_path')
+                    Select::make('http_path')
                         ->options(FilamentAuthenticate::allRoutes())
                         ->searchable()
                         ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
@@ -42,22 +48,22 @@ class PermissionsRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.id'))),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->sortable()
                     ->searchable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.name'))),
 
-                Tables\Columns\TextColumn::make('guard_name')
+                TextColumn::make('guard_name')
                     ->label(strval(__('filament-access-management::filament-access-management.field.guard_name'))),
 
-                Tables\Columns\TextColumn::make('http_path')
+                TextColumn::make('http_path')
                     ->label(strval(__('filament-access-management::filament-access-management.field.http_path'))),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime('Y-m-d H:i:s')
                     ->label(strval(__('filament-access-management::filament-access-management.field.created_at'))),
             ])
@@ -65,23 +71,23 @@ class PermissionsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                CreateAction::make()
                     ->after(function () {
                         static::afterSave();
                     }),
-                Tables\Actions\AttachAction::make()
-                    ->after(function () {
-                        static::afterSave();
-                    }),
-            ])
-            ->actions([
-                Tables\Actions\DetachAction::make()
+                AttachAction::make()
                     ->after(function () {
                         static::afterSave();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\DetachBulkAction::make()
+            ->recordActions([
+                DetachAction::make()
+                    ->after(function () {
+                        static::afterSave();
+                    }),
+            ])
+            ->toolbarActions([
+                DetachBulkAction::make()
                     ->after(function () {
                         static::afterSave();
                     }),

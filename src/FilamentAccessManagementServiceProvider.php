@@ -2,10 +2,17 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
-use Carbon\Carbon;
+use Filament\Support\Assets\Asset;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
-use SolutionForest\FilamentAccessManagement\Database\Seeders;
+use SolutionForest\FilamentAccessManagement\Commands\MakeMenu;
+use SolutionForest\FilamentAccessManagement\Commands\MakeSuperAdminUser;
+use SolutionForest\FilamentAccessManagement\Commands\Upgrade;
+use SolutionForest\FilamentAccessManagement\Database\Seeders\NavigationSeeder;
+use SolutionForest\FilamentAccessManagement\Database\Seeders\UserPermissionSeeder;
+use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -14,6 +21,8 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-access-management';
+
+    public static string $viewNamespace = 'filament-access-management';
 
     public function configurePackage(Package $package): void
     {
@@ -32,8 +41,8 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
                         $command->call('migrate');
 
                         $classes = [
-                            Seeders\UserPermissionSeeder::class,
-                            Seeders\NavigationSeeder::class,
+                            UserPermissionSeeder::class,
+                            NavigationSeeder::class,
                         ];
                         foreach ($classes as $class) {
                             $params = [
@@ -43,8 +52,8 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
                             $command->call('db:seed', $params);
                         }
                         // Clear cache
-                        Facades\FilamentAuthenticate::clearPermissionCache();
-                        Facades\FilamentAuthenticate::menu()->clearCache();
+                        FilamentAuthenticate::clearPermissionCache();
+                        FilamentAuthenticate::menu()->clearCache();
                     });
             });
     }
@@ -52,9 +61,9 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            Commands\MakeSuperAdminUser::class,
-            Commands\MakeMenu::class,
-            Commands\Upgrade::class,
+            MakeSuperAdminUser::class,
+            MakeMenu::class,
+            Upgrade::class,
         ];
     }
 
@@ -74,7 +83,7 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             return app(FilamentAccessManagement::class);
         });
 
-        //Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
+        // Config::push('app.providers', \Spatie\Permission\PermissionServiceProvider::class);
 
     }
 
@@ -96,6 +105,12 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
+        // Asset Registration
+        FilamentAsset::register(
+            $this->getAssets(),
+            $this->getAssetPackageName()
+        );
+
         if ($this->app->runningInConsole()) {
 
             $configFiles = [
@@ -110,5 +125,20 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             }
         }
 
+    }
+
+    protected function getAssetPackageName(): ?string
+    {
+        return 'solution-forest/filament-access-management';
+    }
+
+    /**
+     * @return array<Asset>
+     */
+    protected function getAssets(): array
+    {
+        return [
+            Css::make('filament-access-management-styles', __DIR__.'/../resources/dist/filament-access-management.css'),
+        ];
     }
 }

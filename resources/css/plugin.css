@@ -1,1 +1,14 @@
-@tailwind utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../../src/**/*.php';
+@source '../views/**/*.blade.php';
+
+@source '../../vendor/guava/filament-icon-picker/resources/**';
+
+@theme {
+    --color-danger: var(--color-rose-500);
+    --color-primary: var(--color-amber-500);
+    --color-success: var(--color-green-500);
+    --color-warning: var(--color-amber-500);
+}

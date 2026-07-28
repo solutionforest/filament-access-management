@@ -2,29 +2,36 @@
 
 namespace SolutionForest\FilamentAccessManagement\Resources;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables;
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages;
-use SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\CreateRole;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\EditRole;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\ListRoles;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\ViewRole;
+use SolutionForest\FilamentAccessManagement\Resources\RoleResource\RelationManagers\PermissionsRelationManager;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class RoleResource extends Resource
 {
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Card::make()
+        return $schema
+            ->components([
+                Section::make()
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->label(strval(__('filament-access-management::filament-access-management.field.name')))
                                     ->required(),
-                                Forms\Components\TextInput::make('guard_name')
+                                TextInput::make('guard_name')
                                     ->label(strval(__('filament-access-management::filament-access-management.field.guard_name')))
                                     ->required()
                                     ->default(Utils::getFilamentAuthGuard()),
@@ -42,45 +49,45 @@ class RoleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                TextColumn::make('id')
                     ->sortable()
                     ->label(strval(__('filament-access-management::filament-access-management.field.id'))),
 
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('filament-access-management::filament-access-management.field.name')),
 
-                Tables\Columns\TextColumn::make('guard_name')
+                TextColumn::make('guard_name')
                     ->label(__('filament-access-management::filament-access-management.field.guard_name')),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime('Y-m-d H:i:s')
                     ->label(strval(__('filament-access-management::filament-access-management.field.created_at'))),
             ])
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\PermissionsRelationManager::class,
+            PermissionsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRoles::route('/'),
-            'create' => Pages\CreateRole::route('/create'),
-            'edit' => Pages\EditRole::route('/{record}/edit'),
-            'view' => Pages\ViewRole::route('/{record}'),
+            'index' => ListRoles::route('/'),
+            'create' => CreateRole::route('/create'),
+            'edit' => EditRole::route('/{record}/edit'),
+            'view' => ViewRole::route('/{record}'),
         ];
     }
 

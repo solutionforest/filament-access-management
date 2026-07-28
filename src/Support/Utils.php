@@ -2,15 +2,17 @@
 
 namespace SolutionForest\FilamentAccessManagement\Support;
 
+use DateInterval;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
-use SolutionForest\FilamentAccessManagement\Models;
+use SolutionForest\FilamentAccessManagement\Models\Menu;
 
 class Utils
 {
     public static function getFilamentAuthGuard(): string
     {
-        return (string) config('filament.auth.guard', filament()->getCurrentPanel()?->getAuthGuard() ?? 'web');
+        return (string) config('filament.auth.guard', filament()->getCurrentOrDefaultPanel()?->getAuthGuard() ?? 'web');
     }
 
     public static function getSuperAdminRoleName(): string
@@ -51,7 +53,7 @@ class Utils
 
     public static function getMenuModel(): string
     {
-        return config('filament-access-management.filament.navigation.model', Models\Menu::class);
+        return config('filament-access-management.filament.navigation.model', Menu::class);
     }
 
     public static function getUserTableName(): ?string
@@ -69,7 +71,7 @@ class Utils
         return config('permission.table_names.permissions');
     }
 
-    public static function getMenuTableName():?string
+    public static function getMenuTableName(): ?string
     {
         return config('filament-access-management.filament.navigation.table_name');
     }
@@ -84,16 +86,16 @@ class Utils
         return config('filament-access-management.cache.user_permissions.tag', 'user_permissions');
     }
 
-    public static function getUserPermissionCacheKey(\Illuminate\Contracts\Auth\Authenticatable|null $user = null): string
+    public static function getUserPermissionCacheKey(?Authenticatable $user = null): string
     {
         $user ??= FilamentAuthenticate::user();
 
         return config('filament-access-management.cache.user_permissions.key_prefix', 'user_spatie.permission.cache').'_'.$user->getAuthIdentifier();
     }
 
-    public static function getUserPermissionCacheExpirationTime(): \DateInterval|int
+    public static function getUserPermissionCacheExpirationTime(): DateInterval|int
     {
-        return config('filament-access-management.cache.user_permissions.expiration_time') ?: \DateInterval::createFromDateString('24 hours');
+        return config('filament-access-management.cache.user_permissions.expiration_time') ?: DateInterval::createFromDateString('24 hours');
     }
 
     /**

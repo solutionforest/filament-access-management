@@ -38,6 +38,14 @@
 | 2.x            | 3.x              |
 | 3.x            | 4.x / 5.x        |
 
+> [!NOTE]
+> This plugin depends on [guava/filament-icon-picker](https://github.com/GuavaCZ/filament-icon-picker)
+> for the icon selection UI. If you encounter any errors related to the icon picker, consult the
+> [icon picker documentation](https://github.com/GuavaCZ/filament-icon-picker).
+>
+> **Known issue with Filament v5:** see
+> [GuavaCZ/filament-icon-picker#70](https://github.com/GuavaCZ/filament-icon-picker/issues/70).
+
 ## 📦 Installation
 
 1. Ensure you have already installed a [Filament panel](https://filamentphp.com/docs/panels/installation).

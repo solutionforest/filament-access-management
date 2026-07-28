@@ -7,7 +7,7 @@
 <h1 align="center">Filament Access Management</h1>
 
 <p align="center">
-  Role &amp; permission management for <a href="https://filamentphp.com">Filament</a>, powered by
+  Role & permission management for <a href="https://filamentphp.com">Filament</a>, powered by
   <a href="https://spatie.be/docs/laravel-permission">spatie/laravel-permission</a> — with a
   path-based access gate, a database-driven navigation menu, and a one-command super-admin setup.
 </p>
@@ -41,66 +41,73 @@
 ## 📦 Installation
 
 1. Ensure you have already installed a [Filament panel](https://filamentphp.com/docs/panels/installation).
-
 2. Install the package via Composer:
-   ```bash
-   composer require solution-forest/filament-access-management
-   ```
+
+    ```bash
+    composer require solution-forest/filament-access-management
+    ```
 
 3. Add the necessary trait to your `User` model:
-   ```php
-   use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 
-   class User extends Authenticatable
-   {
-       use FilamentUserHelpers;
-   }
-   ```
+    ```php
+    use SolutionForest\FilamentAccessManagement\Concerns\FilamentUserHelpers;
 
-   > **Panel access (production):** the trait provides the permission helpers but does **not**
-   > implement Filament's `FilamentUser` contract. Outside the `local` environment Filament denies
-   > panel access (HTTP 403) to any user whose model doesn't implement it, so also add
-   > `canAccessPanel()` — see the [Upgrade Guide](#-upgrade-guide).
+    class User extends Authenticatable
+    {
+        use FilamentUserHelpers;
+    }
+    ```
+
+    > **Panel access (production):** the trait provides the permission helpers but does **not**
+    > implement Filament's `FilamentUser` contract. Outside the `local` environment Filament denies
+    > panel access (HTTP 403) to any user whose model doesn't implement it, so also add
+    > `canAccessPanel()` — see the [Upgrade Guide](#-upgrade-guide).
 
 4. Clear your config cache:
-   ```bash
-   php artisan optimize:clear
-   # or
-   php artisan config:clear
-   ```
+
+    ```bash
+    php artisan optimize:clear
+    # or
+    php artisan config:clear
+    ```
 
 5. Register the plugin in your panel provider (**required from v2.x onwards**):
-   ```php
-   use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPanel;
 
-   public function panel(Panel $panel): Panel
-   {
-       return $panel
-           ->plugin(FilamentAccessManagementPanel::make());
-   }
-   ```
+    ```php
+    use SolutionForest\FilamentAccessManagement\FilamentAccessManagementPlugin;
+
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->plugin(FilamentAccessManagementPlugin::make());
+    }
+    ```
 
 6. Run the installer:
-   ```bash
-   php artisan filament-access-management:install
-   ```
-   If you don't already have a user named `admin`, this creates a **Super Admin User**:
 
-   | Field    | Value                                                     |
-   | -------- | --------------------------------------------------------- |
-   | Name     | `admin`                                                   |
-   | Email    | `admin@("slug" pattern from config("app.name")).com`      |
-   | Password | `admin`                                                   |
+    ```bash
+    php artisan filament-access-management:install
+    ```
 
-   You can also create one anytime with:
-   ```bash
-   php artisan make:super-admin-user
-   ```
+    If you don't already have a user named `admin`, this creates a **Super Admin User**:
+
+    | Field    | Value                                                |
+    | -------- | ---------------------------------------------------- |
+    | Name     | `admin`                                              |
+    | Email    | `admin@("slug" pattern from config("app.name")).com` |
+    | Password | `admin`                                              |
+
+    You can also create one anytime with:
+
+    ```bash
+    php artisan make:super-admin-user
+    ```
 
 7. If you are upgrading data from **before v2.2.0**, run:
-   ```bash
-   php artisan filament-access-management:upgrade
-   ```
+
+    ```bash
+    php artisan filament-access-management:upgrade
+    ```
 
 ## 🗂️ Publish Configs, Views, Translations and Migrations
 
@@ -120,7 +127,9 @@ php artisan migrate
 ## 🔼 Upgrade Guide
 
 > [!CAUTION]
+>
 > ## ⚠️ BACK UP YOUR DATABASE FIRST ⚠️
+>
 > Upgrading runs migrations and the `filament-access-management:upgrade` command **rewrites menu
 > data in place**. **Always take a full backup of your database (and code) before you start.**
 > Test the upgrade on a staging copy first, and never run it against production without a verified,
@@ -155,22 +164,27 @@ class User extends Authenticatable implements FilamentUser
 ### Filament v3 (plugin 2.x) → Filament v4 (plugin 3.x)
 
 1. Move Filament and the plugin together:
-   ```bash
-   composer require "filament/filament:^4.0" "solution-forest/filament-access-management:^3.0" -W
-   ```
-   This also moves `solution-forest/filament-tree` (2 → 3) and `guava/filament-icon-picker` (2 → 3).
+
+    ```bash
+    composer require "filament/filament:^4.0" "solution-forest/filament-access-management:^3.0" -W
+    ```
+
+    This also moves `solution-forest/filament-tree` (2 → 3) and `guava/filament-icon-picker` (2 → 3).
+
 2. Follow the [official Filament v3 → v4 upgrade guide](https://filamentphp.com/docs/4.x/upgrade-guide)
    for **your own** app code (namespace changes, `Form` → `Schema`, action namespaces).
 3. Run migrations (no new column is added — `is_filament_panel` already ships in the
    `upgrade_menu_table` migration) and rewrite any legacy `/admin/...` menu URIs:
-   ```bash
-   php artisan migrate
-   php artisan filament-access-management:upgrade
-   ```
-   `filament-access-management:upgrade` strips the `/admin` prefix from menu `uri`s and sets
-   `is_filament_panel = true`. It only touches rows whose `uri` is `/admin` or `/admin/%` **and**
-   `is_filament_panel = false`, so external URLs are left untouched and the command is idempotent
-   (a re-run with nothing to migrate exits cleanly).
+
+    ```bash
+    php artisan migrate
+    php artisan filament-access-management:upgrade
+    ```
+
+    `filament-access-management:upgrade` strips the `/admin` prefix from menu `uri`s and sets
+    `is_filament_panel = true`. It only touches rows whose `uri` is `/admin` or `/admin/%` **and**
+    `is_filament_panel = false`, so external URLs are left untouched and the command is idempotent
+    (a re-run with nothing to migrate exits cleanly).
 
 ### Filament v4 → Filament v5 (both on plugin 3.x)
 
@@ -201,7 +215,7 @@ Upon installation, **Menu**, **Users**, **Roles** and **Permissions** pages are 
 has roles, and each role has permissions.
 
 <details open>
-<summary><b>Menu, Users, Roles &amp; Permissions</b></summary>
+<summary><b>Menu, Users, Roles & Permissions</b></summary>
 
 ![Overview](https://user-images.githubusercontent.com/73818060/232434966-91ab94fe-620a-4894-8632-dbe5e535e5ae.png)
 
@@ -232,13 +246,13 @@ Permissions and routes are bound together. On the edit-permission page, set the 
 permission can access: choose the method in the **HTTP method** select box, and fill the accessible
 path in **HTTP path**.
 
-| Goal | HTTP path |
-| ---- | --------- |
-| Access `GET /admin/users` | `/users` (with `HTTP method` = `GET`) |
-| Access everything under `/admin/users` | `/users*` |
-| Access the edit page only | `/users/*/edit` |
-| Different method per path | `GET:users/*` |
-| Use a route alias | `admin.users.show` |
+| Goal                                  | HTTP path                             |
+| ------------------------------------- | ------------------------------------- |
+| Access`GET /admin/users`              | `/users` (with `HTTP method` = `GET`) |
+| Access everything under`/admin/users` | `/users*`                             |
+| Access the edit page only             | `/users/*/edit`                       |
+| Different method per path             | `GET:users/*`                         |
+| Use a route alias                     | `admin.users.show`                    |
 
 ### Super Administrator
 

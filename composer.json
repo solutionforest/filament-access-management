@@ -1,10 +1,11 @@
 {
     "name": "solution-forest/filament-access-management",
-    "description": "filament-access-management",
+    "description": "Role & permission management for Filament, powered by spatie/laravel-permission — with a path-based access gate, a database-driven navigation menu, and a one-command super-admin setup.",
     "keywords": [
         "Solution Forest",
         "laravel",
-        "filament-access-management"
+        "filament-access-management",
+        "permission"
     ],
     "homepage": "https://github.com/solutionforest/filament-access-management",
     "support": {

@@ -2,6 +2,9 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
+use Filament\Support\Assets\Asset;
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use SolutionForest\FilamentAccessManagement\Commands\MakeMenu;
@@ -18,6 +21,8 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-access-management';
+
+    public static string $viewNamespace = 'filament-access-management';
 
     public function configurePackage(Package $package): void
     {
@@ -100,6 +105,12 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
+        // Asset Registration
+        FilamentAsset::register(
+            $this->getAssets(),
+            $this->getAssetPackageName()
+        );
+
         if ($this->app->runningInConsole()) {
 
             $configFiles = [
@@ -114,5 +125,20 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             }
         }
 
+    }
+
+    protected function getAssetPackageName(): ?string
+    {
+        return 'solution-forest/filament-access-management';
+    }
+
+    /**
+     * @return array<Asset>
+     */
+    protected function getAssets(): array
+    {
+        return [
+            Css::make('filament-access-management-styles', __DIR__.'/../resources/dist/filament-access-management.css'),
+        ];
     }
 }

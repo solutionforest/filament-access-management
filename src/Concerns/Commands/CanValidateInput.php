@@ -12,6 +12,11 @@ trait CanValidateInput
         return $this->validateInput(fn () => $this->ask($question, $default), $field, ['required']);
     }
 
+    /**
+     * @param  Closure(): mixed  $callback
+     * @param  array<int, string>  $rules
+     * @param  Closure(mixed): mixed|null  $onError
+     */
     protected function validateInput(Closure $callback, string $field, array $rules, ?Closure $onError = null): string
     {
         $input = $callback();
@@ -22,15 +27,23 @@ trait CanValidateInput
         );
 
         if ($validator->fails()) {
-            $this->error($validator->errors()->first());
+            $this->error(strval($validator->errors()->first()));
 
             if ($onError) {
                 $onError($validator);
             }
 
-            $input = $this->validateInput($callback, $field, $rules);
+            return $this->validateInput($callback, $field, $rules);
         }
 
-        return $input;
+        if (is_string($input)) {
+            return $input;
+        }
+
+        if (is_int($input) || is_float($input)) {
+            return (string) $input;
+        }
+
+        return '';
     }
 }

@@ -2,6 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Hash;
@@ -21,6 +22,7 @@ class MakeSuperAdminUser extends Command
 
     public $description = 'Create a super admin user';
 
+    /** @var array<array-key, mixed> */
     protected array $options;
 
     public function handle(): int
@@ -33,9 +35,12 @@ class MakeSuperAdminUser extends Command
 
         $this->sendSuccessMessage($user);
 
-        return static::SUCCESS;
+        return self::SUCCESS;
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function getUserCheckKeys(): array
     {
         return [
@@ -45,6 +50,9 @@ class MakeSuperAdminUser extends Command
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function getUserData(): array
     {
         return [
@@ -56,28 +64,43 @@ class MakeSuperAdminUser extends Command
     protected function createUser(): Authenticatable
     {
         $checkKeys = $this->getUserCheckKeys();
+        $model = static::getUserModel();
 
         if ($this->option('force')) {
-            $query = static::getUserModel()::query();
+            $query = $model::query();
+
             foreach ($checkKeys as $key => $value) {
                 $query = $query->where($key, $value);
             }
 
-            return $query->first();
+            $user = $query->first();
+
+            if (! $user instanceof Authenticatable) {
+                throw new Exception('Unable to find the user to update.');
+            }
+
+            return $user;
         }
 
         $data = array_merge($checkKeys, $this->getUserData());
 
-        return static::getUserModel()::create($data);
+        return $model::create($data);
     }
 
     protected function assignRole(Authenticatable $user): void
     {
         $role = FilamentAuthenticate::createAdminRole();
 
-        $user->assignRole($role->name);
+        if (! method_exists($user, 'assignRole')) {
+            return;
+        }
+
+        $user->assignRole($role->getAttribute('name'));
     }
 
+    /**
+     * @return class-string<Authenticatable>
+     */
     protected function getUserModel(): string
     {
         return Utils::getUserModel();
@@ -85,6 +108,9 @@ class MakeSuperAdminUser extends Command
 
     protected function sendSuccessMessage(Authenticatable $user): void
     {
-        $this->info('User '.($user->getAttribute('email') ?? $user->getAttribute('username')).' Created !');
+        $identifier = $user->getAttribute('email') ?? $user->getAttribute('username');
+        $identifier = is_scalar($identifier) ? (string) $identifier : '';
+
+        $this->info('User '.$identifier.' Created !');
     }
 }

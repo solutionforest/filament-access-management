@@ -5,6 +5,7 @@ namespace SolutionForest\FilamentAccessManagement\Commands;
 use Composer\InstalledVersions;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 use function Laravel\Prompts\progress;
@@ -23,20 +24,21 @@ class Upgrade extends Command
             $this->upgradeAfterV1();
         }
 
-        return static::SUCCESS;
+        return self::SUCCESS;
     }
 
-    private function upgradeAfterV1()
+    private function upgradeAfterV1(): void
     {
         $model = Utils::getMenuModel();
 
         // Find the old uri on FilamentAccessManagement v1
-        $v1PathRecords = $model::where(function ($query) {
-            return $query
-                // ->orWhere('uri', '/') // Admin default page on filament v2
-                ->orWhere('uri', '/admin') // Admin dashboard page on filament v2
-                ->orWhere('uri', 'like', '/admin/%'); // The page(s) under admin on filament v2
-        })
+        $v1PathRecords = $model::query()
+            ->where(function (Builder $query): Builder {
+                return $query
+                    // ->orWhere('uri', '/') // Admin default page on filament v2
+                    ->orWhere('uri', '/admin') // Admin dashboard page on filament v2
+                    ->orWhere('uri', 'like', '/admin/%'); // The page(s) under admin on filament v2
+            })
             ->where('is_filament_panel', false) // default value
             ->get();
 
@@ -47,10 +49,11 @@ class Upgrade extends Command
         }
 
         $errors = [];
-        progress('Updating uri of menu as current version', count($v1PathRecords), function ($index) use ($v1PathRecords, &$errors) {
+        progress('Updating uri of menu as current version', count($v1PathRecords), function (int $index) use ($v1PathRecords, &$errors): void {
             foreach ($v1PathRecords as $v1PathRecord) {
                 try {
-                    $newUri = (string) str($v1PathRecord->uri)
+                    $uri = $v1PathRecord->getAttribute('uri');
+                    $newUri = (string) str(is_string($uri) ? $uri : '')
                         ->replace('/admin', '');
 
                     $v1PathRecord->update([
@@ -65,6 +68,7 @@ class Upgrade extends Command
 
         if (count($errors) > 0) {
             $this->error('Upgrade completed with errors:');
+
             foreach ($errors as $error) {
                 $this->error($error);
             }
@@ -73,12 +77,17 @@ class Upgrade extends Command
 
     private function getCurrentVersion(): string
     {
-        return preg_replace(
+        $version = InstalledVersions::getPrettyVersion(self::PACKAGE_NAME)
+            ?? InstalledVersions::getVersion(self::PACKAGE_NAME)
+            ?? '0.0.0';
+
+        $result = preg_replace(
             '/\.x-dev$/',
             '.0',
-            InstalledVersions::getPrettyVersion(self::PACKAGE_NAME)
-            ?? InstalledVersions::getVersion(self::PACKAGE_NAME)
+            $version
         );
+
+        return is_string($result) ? $result : $version;
     }
 
     private function isVersionGreaterThan(string $version): bool

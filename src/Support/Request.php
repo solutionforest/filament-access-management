@@ -2,11 +2,12 @@
 
 namespace SolutionForest\FilamentAccessManagement\Support;
 
+use Illuminate\Http\Request as HttpRequest;
+
 class Request
 {
-    public static function isAjaxRequest(?\Illuminate\Http\Request $request = null)
+    public static function isAjaxRequest(?HttpRequest $request = null): bool
     {
-        /** @var \Illuminate\Http\Request $request */
         $request = $request ?: request();
 
         return $request->ajax() && ! $request->pjax();

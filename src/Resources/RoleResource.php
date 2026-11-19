@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\CreateRole;
 use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\EditRole;
 use SolutionForest\FilamentAccessManagement\Resources\RoleResource\Pages\ListRoles;
@@ -93,12 +94,15 @@ class RoleResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return config('filament-access-management.filament.navigationIcon.role') ?? parent::getNavigationIcon();
+        return Utils::resolveNavigationIcon('role', parent::getNavigationIcon());
     }
 
+    /**
+     * @return class-string<Model>
+     */
     public static function getModel(): string
     {
-        return Utils::getRoleModel() ?? parent::getModel();
+        return Utils::getRoleModel();
     }
 
     public static function getNavigationGroup(): ?string

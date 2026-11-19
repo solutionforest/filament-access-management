@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\CreatePermission;
 use SolutionForest\FilamentAccessManagement\Resources\PermissionResource\Pages\EditPermission;
@@ -105,12 +106,15 @@ class PermissionResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return config('filament-access-management.filament.navigationIcon.permission') ?? parent::getNavigationIcon();
+        return Utils::resolveNavigationIcon('permission', parent::getNavigationIcon());
     }
 
+    /**
+     * @return class-string<Model>
+     */
     public static function getModel(): string
     {
-        return Utils::getPermissionModel() ?? parent::getModel();
+        return Utils::getPermissionModel();
     }
 
     public static function getNavigationGroup(): ?string

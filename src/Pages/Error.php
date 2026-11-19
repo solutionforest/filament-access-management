@@ -9,9 +9,9 @@ class Error extends Page
 {
     protected string $view = 'filament-access-management::pages.error';
 
-    public $code;
+    public int|string|null $code = null;
 
-    public function mount($code = null): void
+    public function mount(int|string|null $code = null): void
     {
         $this->code = $code;
     }

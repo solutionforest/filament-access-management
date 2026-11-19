@@ -2,8 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement\Database\Seeders;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
@@ -20,15 +20,21 @@ class UserPermissionSeeder extends Seeder
 
         $now = now();
 
+        $appName = config('app.name');
+
         // create user
-        $adminUser = Utils::getUserModel()::firstOrCreate([
-            'name' => 'admin',
-        ], [
-            'email' => 'admin@'.Str::of(config('app.name'))->slug().'.com',
-            'email_verified_at' => $now,
-            'password' => bcrypt('admin'),
-            'created_at' => $now,
-        ]);
+        $userModel = Utils::getUserModel();
+        $adminUser = $userModel::query()->whereRaw('name = ?', ['admin'])->first();
+
+        if (! $adminUser instanceof Model) {
+            $adminUser = new $userModel;
+            $adminUser->setAttribute('name', 'admin');
+            $adminUser->setAttribute('email', 'admin@'.Str::of(is_string($appName) ? $appName : 'app')->slug().'.com');
+            $adminUser->setAttribute('email_verified_at', $now);
+            $adminUser->setAttribute('password', bcrypt('admin'));
+            $adminUser->setAttribute('created_at', $now);
+            $adminUser->save();
+        }
 
         // create role
         Utils::getRoleModel()::truncate();
@@ -42,7 +48,9 @@ class UserPermissionSeeder extends Seeder
         $role->givePermissionTo(array_keys(Utils::getSuperAdminPermissions()));
 
         // assign user role
-        $adminUser->assignRole(Utils::getSuperAdminRoleName());
+        if (method_exists($adminUser, 'assignRole')) {
+            $adminUser->assignRole(Utils::getSuperAdminRoleName());
+        }
 
         Schema::enableForeignKeyConstraints(); // DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }

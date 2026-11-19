@@ -58,6 +58,9 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
             });
     }
 
+    /**
+     * @return list<class-string>
+     */
     protected function getCommands(): array
     {
         return [
@@ -67,6 +70,9 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
         ];
     }
 
+    /**
+     * @return list<string>
+     */
     protected function getMigrations(): array
     {
         return [
@@ -127,7 +133,7 @@ class FilamentAccessManagementServiceProvider extends PackageServiceProvider
 
     }
 
-    protected function getAssetPackageName(): ?string
+    protected function getAssetPackageName(): string
     {
         return 'solution-forest/filament-access-management';
     }

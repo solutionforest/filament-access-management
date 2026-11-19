@@ -2,6 +2,7 @@
 
 namespace SolutionForest\FilamentAccessManagement\Concerns;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
@@ -39,7 +40,7 @@ trait FilamentUserHelpers
     /**
      * Determine if the user has any of the given roles.
      *
-     * @param  string|int|array|\Illuminate\Contracts\Support\Arrayable|\BackedEnum  $roles
+     * @param  string|int|array|Arrayable|\BackedEnum  $roles
      */
     public function inRoles($roles): bool
     {

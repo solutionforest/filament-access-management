@@ -8,7 +8,7 @@ use SolutionForest\FilamentAccessManagement\FilamentAccessManagement;
 if (! function_exists('filament_auth')) {
     function filament_auth(): FilamentAccessManagement
     {
-        return app('filament-access-management');
+        return app(FilamentAccessManagement::class);
     }
 }
 
@@ -19,18 +19,15 @@ if (! function_exists('admin_url')) {
     /**
      * Get admin url.
      *
-     * @param  string  $path
-     * @param  mixed  $parameters
-     * @param  bool  $secure
-     * @return string
+     * @param  array<string, mixed>  $parameters
      */
-    function admin_url($path = '', $parameters = [], $secure = null)
+    function admin_url(string $path = '', array $parameters = [], ?bool $secure = null): string
     {
         if (url()->isValidUrl($path)) {
             return $path;
         }
 
-        return url(admin_base_path($path), $parameters, $secure);
+        return (string) url(admin_base_path($path), $parameters, $secure);
     }
 }
 
@@ -41,19 +38,25 @@ if (! function_exists('admin_base_path')) {
     /**
      * Get admin base path.
      */
-    function admin_base_path($path = '', $panel = null)
+    function admin_base_path(string $path = '', ?string $panel = null): string
     {
-        $prefix = '/'.trim(config('filament.path', (filament()->getPanel($panel) ?? filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())->getPath()), '/');
+        $panelPath = (filament()->getPanel($panel) ?? filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())->getPath();
+
+        $configuredPath = config('filament.path');
+        $basePath = is_string($configuredPath) ? $configuredPath : $panelPath;
+
+        $prefix = '/'.trim($basePath, '/');
 
         $prefix = ($prefix == '/') ? '' : $prefix;
 
         if (filter_var($path, FILTER_VALIDATE_URL)) {
-            $path = parse_url($path, PHP_URL_PATH);
+            $parsedPath = parse_url($path, PHP_URL_PATH);
+            $path = is_string($parsedPath) ? $parsedPath : '';
         }
 
         $path = trim($path, '/');
 
-        if (is_null($path) || strlen($path) == 0) {
+        if (strlen($path) === 0) {
             return $prefix ?: '/';
         }
 

@@ -6,6 +6,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
 use Guava\IconPicker\Forms\Components\IconPicker;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use SolutionForest\FilamentTree\Actions\DeleteAction;
@@ -18,6 +19,7 @@ class Menu extends TreePage
 {
     protected static ?string $slug = 'menu';
 
+    /** @var array<string, array<int|string, string>>|null */
     protected ?array $cachedOptions = null;
 
     public static function getMaxDepth(): int
@@ -25,11 +27,17 @@ class Menu extends TreePage
         return 2;
     }
 
+    /**
+     * @return class-string<\SolutionForest\FilamentAccessManagement\Models\Menu>
+     */
     public function getModel(): string
     {
         return Utils::getMenuModel();
     }
 
+    /**
+     * @return array<int, Component>
+     */
     protected function getFormSchema(): array
     {
         return [
@@ -60,19 +68,33 @@ class Menu extends TreePage
         ];
     }
 
-    protected function getCachedOption($name): array
+    /**
+     * @return array<int|string, string>
+     */
+    protected function getCachedOption(string $name): array
     {
-        return data_get($this->getCachedOptions(), $name, []);
+        return array_filter($this->getCachedOptions()[$name] ?? [], 'is_string');
     }
 
+    /**
+     * @return array<string, array<int|string, string>>
+     */
     protected function getCachedOptions(): array
     {
         if ($this->cachedOptions) {
             return $this->cachedOptions;
         }
 
+        $options = [];
+
+        foreach ($this->getModel()::selectArray(static::getMaxDepth() - 1) as $key => $label) {
+            if (is_string($label)) {
+                $options[$key] = $label;
+            }
+        }
+
         return $this->cachedOptions ??= [
-            'parent_id' => $this->getModel()::selectArray(static::getMaxDepth() - 1),
+            'parent_id' => $options,
         ];
     }
 
@@ -138,6 +160,6 @@ class Menu extends TreePage
 
     public static function getNavigationIcon(): string
     {
-        return config('filament-access-management.filament.navigationIcon.menu') ?? parent::getNavigationIcon();
+        return Utils::resolveNavigationIcon('menu', parent::getNavigationIcon());
     }
 }

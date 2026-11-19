@@ -2,22 +2,20 @@
 
 namespace SolutionForest\FilamentAccessManagement\Support;
 
+use BackedEnum;
+use Closure;
 use DateInterval;
 use Filament\Navigation\NavigationGroup;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use SolutionForest\FilamentAccessManagement\Models\Menu as MenuModel;
 use SolutionForest\FilamentAccessManagement\Navigation\NavigationItem;
 use SolutionForest\FilamentTree;
-use SolutionForest\FilamentTree\Concern\SupportTranslation;
 
 class Menu
 {
-    use SupportTranslation {
-        SupportTranslation::handleTranslatable as traitHandleTranslatable;
-    }
-
     /**
      * Get or create a navigation item from db.
      */
@@ -29,7 +27,7 @@ class Menu
         ?string $uri = null,
         ?string $badge = null,
         ?string $badgeColor = null,
-        bool $isFilamentPanel = false): Model
+        bool $isFilamentPanel = false): MenuModel
     {
         return Utils::getMenuModel()::firstOrCreate(
             [
@@ -50,7 +48,7 @@ class Menu
     /**
      * Get a navigation item from db.
      */
-    public static function getNavigation(string $title, int $parent): ?Model
+    public static function getNavigation(string $title, int $parent): ?MenuModel
     {
         return Utils::getMenuModel()::query()
             ->where('title', $title)
@@ -61,80 +59,86 @@ class Menu
     /**
      * Get all navigation items from db.
      *
-     * @return Collection<Model>
+     * @return Collection<int, array<array-key, mixed>>
      */
     public static function getAllNavigation(): Collection
     {
-        return collect(Cache::remember(
+        $items = Cache::remember(
             static::getCacheKey(),
             static::getCacheExpirationTime(),
-            fn () => Utils::getMenuModel()::ordered()->get()->toArray()
-        ));
+            fn (): array => Utils::getMenuModel()::query()->ordered()->get()->toArray()
+        );
+
+        $nodes = [];
+
+        foreach ($items as $item) {
+            if (is_array($item)) {
+                $nodes[] = $item;
+            }
+        }
+
+        return collect($nodes);
     }
 
     /**
      * Get filament navigation group.
      *
-     * @return Collection<string,NavigationGroup>
+     * @return Collection<array-key, NavigationGroup>
      */
-    public static function getNavigationGroups()
+    public static function getNavigationGroups(): Collection
     {
         $model = app(Utils::getMenuModel());
 
-        $titleColumnName = method_exists($model, 'determineTitleColumnName') ? $model->determineTitleColumnName() : 'title';
+        if (! $model instanceof MenuModel) {
+            throw new \UnexpectedValueException('The configured menu model must be a Menu model.');
+        }
+
+        $titleColumnName = $model->determineTitleColumnName();
+        $iconColumnName = $model->determineIconColumnName();
         $childrenKeyName = FilamentTree\Support\Utils::defaultChildrenKeyName();
 
         $allNavigationNodes = static::getAllNavigation();
 
-        $tree = [];
+        $tree = $model->toTree($allNavigationNodes);
 
-        if (method_exists($model, 'toTree')) {
-            $tree = $model->toTree($allNavigationNodes);
-        } else {
-            $tree = FilamentTree\Support\Utils::buildNestedArray(
-                nodes: $allNavigationNodes,
-                parentId: null,
-                primaryKeyName: method_exists($model, 'getKeyName') ? $model->getKeyName() : null,
-                parentKeyName: method_exists($model, 'determineParentColumnName') ? $model->determineParentColumnName() : null,
-                childrenKeyName: $childrenKeyName,
-            );
-        }
-
-        $result = collect();
+        $result = [];
 
         foreach ($tree as $index => $item) {
-            static::handleTranslatable($item);
+            if (! is_array($item)) {
+                continue;
+            }
 
-            $navGroupLabel = static::ensureNavigationLabel(empty($item[$childrenKeyName]) ? null : $item[$titleColumnName]);
+            self::handleTranslatable($item);
 
-            $nodes = collect($item)->toArray();
+            $navGroupLabel = empty($item[$childrenKeyName])
+                ? null
+                : self::ensureNavigationLabel($item[$titleColumnName] ?? null);
 
-            if (empty($nodes)) {
+            if (empty($item)) {
                 continue;
             }
 
             $icon = null;
             $childrenNodes = [];
+
             // Is Navigation Group
             if (! empty($navGroupLabel)) {
-                $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
-                $icon = $item[$iconColumnName] ?? null;
-                $childrenNodes = $item[$childrenKeyName] ?? [];
+                $icon = self::normalizeIcon($item[$iconColumnName] ?? null);
+                $children = $item[$childrenKeyName] ?? [];
+                $childrenNodes = is_array($children) ? $children : [];
             } else {
-                $childrenNodes[] = $nodes;
+                $childrenNodes[] = $item;
             }
-            $navigationGroupItems = static::buildNavigationGroupItems($childrenNodes, $navGroupLabel, $icon);
 
-            $result->put(
-                $navGroupLabel ?? $index,
-                NavigationGroup::make()
-                    ->label($navGroupLabel)
-                    ->icon($icon)
-                    ->items($navigationGroupItems)
-            );
+            $navigationGroupItems = self::buildNavigationGroupItems($childrenNodes, $navGroupLabel, $icon);
+
+            $result[$navGroupLabel ?? $index] = NavigationGroup::make()
+                ->label($navGroupLabel)
+                ->icon($icon)
+                ->items($navigationGroupItems);
         }
 
-        return $result;
+        return collect($result);
     }
 
     public static function clearCache(): void
@@ -144,71 +148,73 @@ class Menu
 
     public static function getCacheKey(): string
     {
-        return config('filament-access-management.cache.navigation.key', 'filament_navigation');
+        $key = config('filament-access-management.cache.navigation.key', 'filament_navigation');
+
+        return is_string($key) && $key !== '' ? $key : 'filament_navigation';
     }
 
     public static function getCacheExpirationTime(): DateInterval|int
     {
-        return config('filament-access-management.cache.navigation.expiration_time') ?: DateInterval::createFromDateString('24 hours');
+        $expiration = config('filament-access-management.cache.navigation.expiration_time');
+
+        return $expiration instanceof DateInterval || is_int($expiration)
+            ? $expiration
+            : DateInterval::createFromDateString('24 hours');
     }
 
     public static function normalizeIcon(mixed $icon): ?string
     {
-        $heroiconEnumFqcn = 'Filament\\Support\\Icons\\Heroicon';
-
-        if (is_a($icon, 'BackedEnum') || is_a($icon, 'UnitEnum')) {
-            if (property_exists($icon, 'value')) {
-                $icon = $icon->value;
-            } else {
-                $icon = (string) $icon;
-            }
+        if ($icon instanceof BackedEnum) {
+            $icon = $icon->value;
         }
 
-        // Saft handle heroicon value
-        $heroIconEnumFqcn = 'Filament\\Support\\Icons\\Heroicon';
-        if (
-            enum_exists($heroIconEnumFqcn)
-            && method_exists($heroIconEnumFqcn, 'tryFrom')
-            && ($heroIconEnum = $heroiconEnumFqcn::tryFrom($icon)) !== null
-        ) {
-            // Add missing heroicon- prefix if not present
-            if (! str($icon)->startsWith('heroicon-')) {
-                return 'heroicon-'.$icon;
-            }
-        }
-
-        if (! is_string($icon)) {
+        if (! is_string($icon) || $icon === '') {
             return null;
+        }
+
+        // Soft handle heroicon value
+        if (Heroicon::tryFrom($icon) !== null && ! str($icon)->startsWith('heroicon-')) {
+            return 'heroicon-'.$icon;
         }
 
         return $icon;
     }
 
+    /**
+     * @param  array<array-key, mixed>  $final
+     */
     private static function handleTranslatable(array &$final): void
     {
-        $modelClass = Utils::getMenuModel();
-        if (method_exists($modelClass, 'handleTranslatable')) {
-            $modelClass::handleTranslatable($final);
-        } else {
-            static::traitHandleTranslatable($final, $modelClass);
-        }
+        Utils::getMenuModel()::handleTranslatable($final);
     }
 
-    private static function ensureNavigationLabel($label): ?string
+    private static function ensureNavigationLabel(mixed $label): ?string
     {
-        if (! $label) {
+        if (empty($label)) {
+            return null;
+        }
+
+        if (is_array($label) || $label instanceof Arrayable) {
+            $first = collect($label)->first();
+
+            return is_string($first) ? $first : null;
+        }
+
+        if (is_string($label)) {
             return $label;
         }
-        if (is_array($label) || $label instanceof Arrayable) {
-            return collect($label)->first();
-        }
-        if (! is_string($label)) {
+
+        if (is_scalar($label)) {
             return (string) $label;
         }
 
-        return $label;
+        return null;
     }
 
+    /**
+     * @param  array<array-key, mixed>  $treeItems
+     * @return list<NavigationItem>
+     */
     private static function buildNavigationGroupItems(array $treeItems = [], ?string $groupLabel = null, ?string $groupIcon = null): array
     {
         if (empty($treeItems)) {
@@ -217,48 +223,88 @@ class Menu
 
         $model = app(Utils::getMenuModel());
 
-        return collect($treeItems)
-            ->map(function (array $treeItem) {
-                static::handleTranslatable($treeItem);
+        if (! $model instanceof MenuModel) {
+            throw new \UnexpectedValueException('The configured menu model must be a Menu model.');
+        }
 
-                return $treeItem;
-            })
-            ->map(function (array $treeItem) use ($model) {
+        $labelColumnName = $model->determineTitleColumnName();
+        $iconColumnName = $model->determineIconColumnName();
+        $activeIconColumnName = $model->determineActiveIconColumnName();
+        $uriColumnName = $model->determineUriColumnName();
+        $badgeColumnName = $model->determineBadgeColumnName();
+        $badgeColorColumnName = $model->determineBadgeColorColumnName();
+        $orderColumnName = $model->determineOrderColumnName();
 
-                $labelColumnName = method_exists($model, 'determineTitleColumnName') ? $model->determineTitleColumnName() : 'title';
-                $iconColumnName = method_exists($model, 'determineIconColumnName') ? $model->determineIconColumnName() : 'icon';
-                $activeIconColumnName = method_exists($model, 'determineActiveIconColumnName') ? $model->determineActiveIconColumnName() : 'active_icon';
-                $uriColumnName = method_exists($model, 'determineUriColumnName') ? $model->determineUriColumnName() : 'uri';
-                $badgeColumnName = method_exists($model, 'determineBadgeColumnName') ? $model->determineBadgeColumnName() : 'badge';
-                $badgeColorColumnName = method_exists($model, 'determineBadgeColorColumnName') ? $model->determineBadgeColorColumnName() : 'badge_color';
-                $orderColumnName = method_exists($model, 'determineOrderColumnName') ? $model->determineOrderColumnName() : FilamentTree\Support\Utils::orderColumnName();
+        $result = [];
 
-                $url = trim(($treeItem[$uriColumnName] ?? '/'), '/');
+        foreach ($treeItems as $treeItem) {
+            if (! is_array($treeItem)) {
+                continue;
+            }
 
-                if (($treeItem['is_filament_panel'] ?? false) == true && $panel = (filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())) {
+            self::handleTranslatable($treeItem);
 
-                    $pathInPanel = (string) str($panel->getPath())
-                        ->trim('/')
-                        ->append('/')
-                        ->when($panel->hasTenancy(),
-                            fn ($str) => $str
-                                ->append(filament()->getTenant()?->getKey())
-                                ->append('/'))
-                        ->append($url);
+            $rawUri = $treeItem[$uriColumnName] ?? '/';
+            $rawUri = is_string($rawUri) ? $rawUri : '/';
 
-                    $url = url($pathInPanel);
+            $url = trim($rawUri, '/');
+
+            $isFilamentPanel = $treeItem['is_filament_panel'] ?? false;
+            $panel = filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel();
+
+            if ($isFilamentPanel == true) {
+                $pathInPanel = (string) str($panel->getPath())->trim('/')->append('/');
+
+                if ($panel->hasTenancy()) {
+                    $tenantKey = filament()->getTenant()?->getKey();
+
+                    if (is_string($tenantKey) || is_int($tenantKey)) {
+                        $pathInPanel .= $tenantKey.'/';
+                    }
                 }
 
-                return NavigationItem::make()
-                    ->label(static::ensureNavigationLabel($treeItem[$labelColumnName]) ?? '')
-                    ->group($groupLabel ?? '')
-                    ->groupIcon($groupIcon ?? '')
-                    ->icon($treeItem[$iconColumnName] ?? Utils::getFilamentDefaultIcon())   // must have icon
-                    ->activeIcon($treeItem[$activeIconColumnName] ?? '')
-                    ->isActiveWhen(fn (): bool => request()->is(trim(($treeItem[$uriColumnName] ?? '/'), '/')))
-                    ->sort(intval($treeItem[$orderColumnName] ?? 0))
-                    ->badge(($treeItem[$badgeColumnName] ?? null), color: ($treeItem[$badgeColorColumnName] ?? null))
-                    ->url($url);
-            })->toArray();
+                $pathInPanel .= $url;
+
+                $url = (string) url($pathInPanel);
+            }
+
+            $icon = self::normalizeIcon($treeItem[$iconColumnName] ?? null) ?? Utils::getFilamentDefaultIcon();
+            $activeIcon = self::normalizeIcon($treeItem[$activeIconColumnName] ?? null) ?? '';
+
+            $badge = $treeItem[$badgeColumnName] ?? null;
+            $badge = is_string($badge) ? $badge : null;
+
+            $badgeColor = $treeItem[$badgeColorColumnName] ?? null;
+
+            if (is_array($badgeColor)) {
+                $colors = [];
+
+                foreach ($badgeColor as $colorKey => $colorValue) {
+                    if (is_int($colorValue) || is_string($colorValue)) {
+                        $colors[$colorKey] = $colorValue;
+                    }
+                }
+
+                $badgeColor = $colors;
+            } elseif (! is_string($badgeColor) && ! $badgeColor instanceof Closure) {
+                $badgeColor = null;
+            }
+
+            $order = $treeItem[$orderColumnName] ?? 0;
+            $sort = is_numeric($order) ? (int) $order : 0;
+
+            $result[] = NavigationItem::make()
+                ->label(self::ensureNavigationLabel($treeItem[$labelColumnName] ?? null) ?? '')
+                ->group($groupLabel ?? '')
+                ->groupIcon($groupIcon ?? '')
+                ->icon($icon)
+                ->activeIcon($activeIcon)
+                ->activeWhen(fn (): bool => request()->is(trim($rawUri, '/')))
+                ->sort($sort)
+                ->badge($badge, color: $badgeColor)
+                ->url($url);
+        }
+
+        return $result;
     }
 }

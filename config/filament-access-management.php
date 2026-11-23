@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 use SolutionForest\FilamentAccessManagement\Http\Middleware;
 use SolutionForest\FilamentAccessManagement\Models;
 use SolutionForest\FilamentAccessManagement\Pages;
@@ -17,7 +16,7 @@ return [
             '/error*',
         ],
         // Default user model
-        'model' => User::class,
+        'model' => 'App\\Models\\User',
     ],
     'filament' => [
         'path_permission_checking' => [

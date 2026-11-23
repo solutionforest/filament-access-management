@@ -2,12 +2,26 @@
 
 namespace SolutionForest\FilamentAccessManagement\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 use SolutionForest\FilamentTree\Concern\ModelTree;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property string|null $icon
+ * @property string|null $active_icon
+ * @property string|null $uri
+ * @property bool $is_filament_panel
+ * @property string|null $badge
+ * @property string|null $badge_color
+ * @property int $parent_id
+ * @property int $order
+ * @property Collection<int, Menu> $children
+ */
 class Menu extends Model
 {
     use ModelTree;
@@ -31,24 +45,32 @@ class Menu extends Model
     public function getNavigationUrl(): ?string
     {
         $uriColumnName = $this->determineUriColumnName();
-        if (empty($this->{$uriColumnName})) {
+        $uri = $this->getAttribute($uriColumnName);
+
+        if (! is_string($uri) || $uri === '') {
             return null;
         }
-        if ($this->is_filament_panel && $panel = (filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel())) {
 
-            $pathInPanel = (string) str($panel->getPath())
-                ->trim('/')
-                ->append('/')
-                ->when($panel->hasTenancy(),
-                    fn ($str) => $str
-                        ->append(filament()->getTenant()?->getKey())
-                        ->append('/'))
-                ->append(trim($this->{$uriColumnName}, '/'));
+        $isFilamentPanel = $this->getAttribute('is_filament_panel');
+        $panel = filament()->getCurrentOrDefaultPanel() ?? filament()->getDefaultPanel();
 
-            return url($pathInPanel);
+        if ($isFilamentPanel) {
+            $pathInPanel = (string) str($panel->getPath())->trim('/')->append('/');
+
+            if ($panel->hasTenancy()) {
+                $tenantKey = filament()->getTenant()?->getKey();
+
+                if (is_string($tenantKey) || is_int($tenantKey)) {
+                    $pathInPanel .= $tenantKey.'/';
+                }
+            }
+
+            $pathInPanel .= trim($uri, '/');
+
+            return (string) url($pathInPanel);
         }
 
-        return $this->{$uriColumnName};
+        return $uri;
     }
 
     public function determineTitleColumnName(): string
@@ -81,17 +103,16 @@ class Menu extends Model
         return 'badge_color';
     }
 
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::saving(function (self $menu) {
+        static::saving(function (self $menu): void {
             $iconColumnName = $menu->determineIconColumnName();
             $uriColumnName = $menu->determineUriColumnName();
 
-            $icon = $menu->{$iconColumnName};
-
-            $uri = $menu->{$uriColumnName};
+            $icon = $menu->getAttribute($iconColumnName);
+            $uri = $menu->getAttribute($uriColumnName);
 
             // Is Navigation Group
             if (count($menu->children) > 0) {
@@ -99,30 +120,32 @@ class Menu extends Model
             } else {
                 // non-navigation group must have icon
                 if (! filled($icon)) {
-                    $menu->{$iconColumnName} = Utils::getFilamentDefaultIcon();
+                    $menu->setAttribute($iconColumnName, Utils::getFilamentDefaultIcon());
                 }
 
                 // Ensure uri start with '/' or is valid url
-                if (! url()->isValidUrl($uri)) {
-                    $menu->{$uriColumnName} = (string) Str::start($uri, '/');
+                $uriValue = is_string($uri) ? $uri : '';
+
+                if (! url()->isValidUrl($uriValue)) {
+                    $menu->setAttribute($uriColumnName, (string) Str::start($uriValue, '/'));
                 }
             }
         });
 
-        static::saved(function (self $menu) {
+        static::saved(function (self $menu): void {
             // Clear cache
             FilamentAuthenticate::menu()->clearCache();
         });
 
-        static::deleted(function (self $menu) {
+        static::deleted(function (self $menu): void {
             // Clear cache
             FilamentAuthenticate::menu()->clearCache();
         });
 
     }
 
-    public function getTable()
+    public function getTable(): string
     {
-        return Utils::getMenuTableName();
+        return Utils::getMenuTableName() ?? parent::getTable();
     }
 }

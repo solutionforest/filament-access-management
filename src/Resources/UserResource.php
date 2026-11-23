@@ -11,6 +11,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\CreateUser;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages\EditUser;
@@ -42,7 +43,7 @@ class UserResource extends Resource
                             ->password()
                             ->maxLength(255)
                             ->required(fn ($component, $get, $livewire, $model, $record, $set, $state) => $record === null)
-                            ->dehydrateStateUsing(fn ($state) => ! empty($state) ? Hash::make($state) : '')
+                            ->dehydrateStateUsing(fn (mixed $state): string => is_string($state) && $state !== '' ? Hash::make($state) : '')
                             ->label(strval(__('filament-access-management::filament-access-management.field.user.password'))),
 
                         TextInput::make('passwordConfirmation')
@@ -127,12 +128,15 @@ class UserResource extends Resource
 
     public static function getNavigationIcon(): string
     {
-        return config('filament-access-management.filament.navigationIcon.user') ?? parent::getNavigationIcon();
+        return Utils::resolveNavigationIcon('user', parent::getNavigationIcon());
     }
 
+    /**
+     * @return class-string<Model>
+     */
     public static function getModel(): string
     {
-        return Utils::getUserModel() ?? parent::getModel();
+        return Utils::getUserModel();
     }
 
     public static function getNavigationGroup(): ?string

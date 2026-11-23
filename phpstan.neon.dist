@@ -1,8 +1,5 @@
-includes:
-    - phpstan-baseline.neon
-
 parameters:
-    level: 4
+    level: 10
     paths:
         - src
         - config
@@ -10,4 +7,16 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
-
+    ignoreErrors:
+        # These two traits are the package's public API for consuming applications'
+        # User models. They are intentionally not used inside the package itself,
+        # so PHPStan sees no in-package usage to analyse them against. The test
+        # fixtures use them, but the analysis scope is src/config/database.
+        -
+            message: '#^Trait SolutionForest\\FilamentAccessManagement\\Concerns\\FilamentUser is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            path: src/Concerns/FilamentUser.php
+        -
+            message: '#^Trait SolutionForest\\FilamentAccessManagement\\Concerns\\FilamentUserHelpers is used zero times and is not analysed\.$#'
+            identifier: trait.unused
+            path: src/Concerns/FilamentUserHelpers.php

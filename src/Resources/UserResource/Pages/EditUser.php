@@ -3,6 +3,7 @@
 namespace SolutionForest\FilamentAccessManagement\Resources\UserResource\Pages;
 
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
 use SolutionForest\FilamentAccessManagement\Facades\FilamentAuthenticate;
 use SolutionForest\FilamentAccessManagement\Resources\UserResource;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
@@ -22,7 +23,7 @@ class EditUser extends EditRecord
 
     public function afterSave(): void
     {
-        if (! is_a($this->record, Utils::getUserModel())) {
+        if (! $this->record instanceof Model || ! is_a($this->record, Utils::getUserModel())) {
             return;
         }
 

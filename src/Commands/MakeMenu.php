@@ -5,6 +5,7 @@ namespace SolutionForest\FilamentAccessManagement\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use SolutionForest\FilamentAccessManagement\Concerns\Commands\CanValidateInput;
+use SolutionForest\FilamentAccessManagement\Models\Menu;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
 class MakeMenu extends Command
@@ -22,9 +23,10 @@ class MakeMenu extends Command
 
     protected $description = 'Create a new menu';
 
+    /** @var array<array-key, mixed> */
     protected array $options;
 
-    public function handle()
+    public function handle(): int
     {
         $this->options = $this->option();
 
@@ -32,10 +34,13 @@ class MakeMenu extends Command
 
         $this->sendSuccessMessage($nav);
 
-        return static::SUCCESS;
+        return self::SUCCESS;
     }
 
-    protected function getMenuData()
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getMenuData(): array
     {
         return [
             'title' => $this->validateInput(fn () => $this->options['title'] ?? $this->ask('Title'), 'title', ['required'], fn () => $this->options['title'] = null),
@@ -48,11 +53,14 @@ class MakeMenu extends Command
         ];
     }
 
-    protected function createMenu()
+    protected function createMenu(): Menu
     {
         return static::getMenuModel()::create($this->getMenuData());
     }
 
+    /**
+     * @return class-string<Menu>
+     */
     protected function getMenuModel(): string
     {
         return Utils::getMenuModel();
@@ -60,6 +68,9 @@ class MakeMenu extends Command
 
     protected function sendSuccessMessage(Model $model): void
     {
-        $this->info('Menu '.$model->getAttribute('title').' Created !');
+        $title = $model->getAttribute('title');
+        $title = is_scalar($title) ? (string) $title : '';
+
+        $this->info('Menu '.$title.' Created !');
     }
 }

@@ -2,6 +2,8 @@
 
 namespace SolutionForest\FilamentAccessManagement;
 
+use Closure;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationBuilder;
@@ -11,6 +13,7 @@ use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Pages\Error as ErrorPage;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
 
+/** @phpstan-consistent-constructor */
 class FilamentAccessManagementPlugin implements Plugin
 {
     public function getId(): string
@@ -31,7 +34,11 @@ class FilamentAccessManagementPlugin implements Plugin
         $panel->pages($pages);
 
         // middleware
-        $panel->middleware(config('filament-access-management.filament.middleware.base', []));
+        $middleware = config('filament-access-management.filament.middleware.base', []);
+        $middleware = is_array($middleware) ? $middleware : [];
+        $middleware = array_values(array_filter($middleware, 'is_string'));
+
+        $panel->middleware($middleware);
     }
 
     public function boot(Panel $panel): void
@@ -45,15 +52,24 @@ class FilamentAccessManagementPlugin implements Plugin
 
     public static function make(): static
     {
-        return app(static::class);
+        return new static;
     }
 
-    public static function get(): static
+    public static function get(): self
     {
-        return filament(app(static::class)->getId());
+        $plugin = filament((new static)->getId());
+
+        if (! $plugin instanceof self) {
+            throw new Exception('Unable to resolve the '.static::class.' plugin.');
+        }
+
+        return $plugin;
     }
 
-    protected function configureNavigation()
+    /**
+     * @return Closure(NavigationBuilder): NavigationBuilder
+     */
+    protected function configureNavigation(): Closure
     {
         return function (NavigationBuilder $builder): NavigationBuilder {
 
@@ -65,30 +81,28 @@ class FilamentAccessManagementPlugin implements Plugin
         };
     }
 
-    protected function configureComponent()
+    protected function configureComponent(): void
     {
         if (config('filament-access-management.filament.path_permission_checking.action', false)) {
-            Action::configureUsing(function (Action $component) {
-                if (method_exists($component, 'getUrl')) {
-                    $component->hidden(function () use ($component) {
-                        // A record-bound action's URL (e.g. EditAction) requires the
-                        // {record} route parameter. When the action is evaluated
-                        // without a bound record (table render / header context),
-                        // getUrl() throws UrlGenerationException. Treat any
-                        // URL-resolution failure as "not URL-permission-gated".
-                        try {
-                            $url = $component->getUrl();
-                        } catch (\Throwable $e) {
-                            return false;
-                        }
+            Action::configureUsing(function (Action $component): void {
+                $component->hidden(function () use ($component) {
+                    // A record-bound action's URL (e.g. EditAction) requires the
+                    // {record} route parameter. When the action is evaluated
+                    // without a bound record (table render / header context),
+                    // getUrl() throws UrlGenerationException. Treat any
+                    // URL-resolution failure as "not URL-permission-gated".
+                    try {
+                        $url = $component->getUrl();
+                    } catch (\Throwable $e) {
+                        return false;
+                    }
 
-                        if (empty($url)) {
-                            return false;
-                        }
+                    if (empty($url)) {
+                        return false;
+                    }
 
-                        return ! Permission::checkPermission($url);
-                    });
-                }
+                    return ! Permission::checkPermission($url);
+                });
             });
         }
     }

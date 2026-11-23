@@ -8,18 +8,21 @@ use Filament\Facades\Filament;
 use Filament\Navigation\NavigationBuilder;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use SolutionForest\FilamentAccessManagement\Http\Auth\Permission;
 use SolutionForest\FilamentAccessManagement\Support\Menu;
 use SolutionForest\FilamentAccessManagement\Support\Utils;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Throwable;
 
@@ -27,8 +30,10 @@ class FilamentAccessManagement
 {
     protected ?Closure $navigationBuilder = null;
 
+    /** @var list<string|NavigationGroup> */
     protected array $customNavigationGroups = [];
 
+    /** @var list<NavigationItem> */
     protected array $customNavigationItems = [];
 
     /**
@@ -46,31 +51,34 @@ class FilamentAccessManagement
 
     /**
      * Check user cached permissions.
+     *
+     * @return Collection<array-key, mixed>
      */
-    public function userPermissions(?Authenticatable $user = null)
+    public function userPermissions(?Authenticatable $user = null): Collection
     {
         $user ??= static::user();
 
-        return Cache::remember(
-            Utils::getUserPermissionCacheKey($user),
+        if (! $user instanceof Authenticatable) {
+            return collect();
+        }
+
+        $cacheKey = Utils::getUserPermissionCacheKey($user);
+
+        $cached = Cache::remember(
+            $cacheKey,
             Utils::getUserPermissionCacheExpirationTime(),
-            function () use ($user) {
-                $tags = Cache::get(Utils::getUserPermissionCacheTag());
-
-                if (is_null($tags)) {
-                    $tags = [];
-                }
-
-                $tags = collect($tags)
-                    ->merge([Utils::getUserPermissionCacheKey($user)])
-                    ->unique()
-                    ->all();
-
-                Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
-
-                return method_exists($user, 'getAllPermissions') ? collect($user->getAllPermissions()) : collect();
-            }
+            fn (): array => $this->permissionAttributesFor($user)
         );
+
+        // Stale cache may unserialize as __PHP_Incomplete_Class when Eloquent
+        // models/collections were stored previously.
+        if (! is_array($cached)) {
+            Cache::forget($cacheKey);
+            $cached = $this->permissionAttributesFor($user);
+            Cache::put($cacheKey, $cached, Utils::getUserPermissionCacheExpirationTime());
+        }
+
+        return $this->hydratePermissions($cached);
     }
 
     public function clearPermissionCache(): void
@@ -81,14 +89,18 @@ class FilamentAccessManagement
         // Custom cache
         if ($tags = Cache::get(Utils::getUserPermissionCacheTag())) {
             if (is_array($tags)) {
-                collect($tags)->each(fn ($tag) => Cache::forget($tag));
+                collect($tags)->each(function (mixed $tag): void {
+                    if (is_string($tag)) {
+                        Cache::forget($tag);
+                    }
+                });
             }
 
             Cache::forget(Utils::getUserPermissionCacheTag());
         }
     }
 
-    public function createAdminRole(): Model
+    public function createAdminRole(): Role
     {
         return Utils::getRoleModel()::firstOrCreate(
             ['name' => Utils::getSuperAdminRoleName()],
@@ -96,28 +108,20 @@ class FilamentAccessManagement
         );
     }
 
+    /**
+     * @return list<\Spatie\Permission\Models\Permission>
+     */
     public function createAdminPermission(): array
     {
-        $permissions = Utils::getSuperAdminPermissions();
-
-        return array_map(function ($httpPath, $name) {
-            return Utils::getPermissionModel()::firstOrCreate(
-                ['name' => $name],
-                ['http_path' => $httpPath, 'guard_name' => Utils::getFilamentAuthGuard()]
-            );
-        }, $permissions, array_keys($permissions));
+        return $this->createPermissionModels(Utils::getSuperAdminPermissions());
     }
 
+    /**
+     * @return list<\Spatie\Permission\Models\Permission>
+     */
     public function createPermissions(): array
     {
-        $permissions = Utils::getPermissions();
-
-        return array_map(function ($httpPath, $name) {
-            return Utils::getPermissionModel()::firstOrCreate(
-                ['name' => $name],
-                ['http_path' => $httpPath, 'guard_name' => Utils::getFilamentAuthGuard()]
-            );
-        }, $permissions, array_keys($permissions));
+        return $this->createPermissionModels(Utils::getPermissions());
     }
 
     /**
@@ -127,37 +131,44 @@ class FilamentAccessManagement
     {
         $fiPanel = Filament::getCurrentOrDefaultPanel();
 
-        $excepts = array_values(Arr::whereNotNull(array_unique(
-            array_merge(
-                [
-                    $fiPanel->getPath(),
-                    (string) str($fiPanel->getPath())->append('/error*'),
-                    // getLoginUrl()/getLogoutUrl() return absolute URLs; reduce them to
-                    // their path component so they match request paths (e.g. logout).
-                    parse_url((string) $fiPanel->getLoginUrl(), PHP_URL_PATH),
-                    parse_url((string) $fiPanel->getLogoutUrl(), PHP_URL_PATH),
-                    (string) str($fiPanel->getPath())->append('/assets*'),
-                ],
-                array_map(
-                    fn ($except) => (string) str($fiPanel->getPath())->append($except),
-                    (array) config('filament-access-management.auth.except', [])
-                ),
-            )
-        )));
+        if (! $fiPanel instanceof Panel) {
+            return true;
+        }
+
+        $panelPath = $fiPanel->getPath();
+
+        $configured = config('filament-access-management.auth.except', []);
+        $configured = is_array($configured) ? $configured : [];
+
+        $excepts = [
+            $panelPath,
+            $panelPath.'/error*',
+            parse_url((string) $fiPanel->getLoginUrl(), PHP_URL_PATH),
+            parse_url((string) $fiPanel->getLogoutUrl(), PHP_URL_PATH),
+            $panelPath.'/assets*',
+        ];
+
+        foreach ($configured as $except) {
+            if (is_string($except)) {
+                $excepts[] = $panelPath.$except;
+            }
+        }
 
         $current = is_string($request) ? $request : $request->path();
+        $current = (string) str($panelPath)->append('/')->append(ltrim($current, '/'));
 
         foreach ($excepts as $except) {
+            if (! is_string($except)) {
+                continue;
+            }
+
             if (! is_string($request)) {
                 $except = trim($except, '/');
+
                 if ($request->is($except)) {
                     return true;
                 }
             }
-
-            $current = (string) str($fiPanel->getPath())
-                ->append('/')
-                ->append(ltrim($current, '/'));
 
             if (Utils::matchRequestPath($except, $current)) {
                 return true;
@@ -167,40 +178,59 @@ class FilamentAccessManagement
         return false;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function allRoutes(): array
     {
-        $prefix = trim(config('filament.path'), '/');
+        $configuredPrefix = config('filament.path');
+        $prefix = is_string($configuredPrefix) ? trim($configuredPrefix, '/') : '';
 
-        $container = collect();
+        $paths = [];
 
-        $routes = collect(app('router')->getRoutes())->map(function ($route) use ($prefix, $container) {
-            if (! Str::startsWith($uri = $route->uri(), $prefix) && $prefix && $prefix !== '/') {
-                return;
+        foreach (app(Router::class)->getRoutes()->getRoutes() as $route) {
+            $uri = $route->uri();
+
+            if ($prefix !== '' && $prefix !== '/' && ! Str::startsWith($uri, $prefix)) {
+                continue;
             }
 
             if (! Str::contains($uri, '{')) {
-                $route = Str::replaceFirst($prefix, '', $uri.'*');
+                $routePath = Str::replaceFirst($prefix, '', $uri.'*');
 
-                if ($route !== '*') {
-                    $container->push($route);
+                if ($routePath !== '*') {
+                    $paths[] = $routePath;
                 }
             }
 
-            return Str::replaceFirst($prefix, '', preg_replace('/{.*}+/', '*', $uri));
-        });
+            $wildcardPath = preg_replace('/{.*}+/', '*', $uri);
+
+            if (is_string($wildcardPath)) {
+                $paths[] = Str::replaceFirst($prefix, '', $wildcardPath);
+            }
+        }
 
         $except = [
             '/error*',
             '/login*',
         ];
 
-        return $container
-            ->merge($routes)
-            ->filter(fn ($path) => filled($path) && ! Str::of($path)->is($except))
-            ->map(fn ($path) => admin_base_path($path))
-            ->sort()
-            ->keyBy(fn ($path) => $path)
-            ->all();
+        $paths = array_values(array_filter(
+            $paths,
+            fn (string $path): bool => $path !== '' && ! Str::of($path)->is($except)
+        ));
+
+        $paths = array_map(fn (string $path): string => admin_base_path($path), $paths);
+
+        sort($paths);
+
+        $result = [];
+
+        foreach ($paths as $path) {
+            $result[$path] = $path;
+        }
+
+        return $result;
     }
 
     /**
@@ -213,52 +243,65 @@ class FilamentAccessManagement
 
     /**
      * Get user navigation groups.
+     *
+     * @return list<NavigationGroup>
      */
     public function getUserNavigationGroups(): array
     {
         $groups = static::menu()->getNavigationGroups();
 
         if (! Permission::isSuperAdmin()) {
-            $menu = $groups;
+            $urls = [];
 
-            $checkResult = Permission::checkPermission(
-                collect($menu)
-                    ->map(fn (NavigationGroup $item) => $item->getItems())
-                    ->flatten()
-                    ->map(fn (NavigationItem $navItem) => $navItem->getUrl())
-                    ->filter()
-                    ->unique()
-                    ->toArray()
-            );
+            foreach ($groups as $group) {
+                foreach (self::navigationItems($group) as $navItem) {
+                    $url = $navItem->getUrl();
 
-            if (! is_bool($checkResult)) {
-                $groups = collect();
-
-                $checkResult = array_keys(array_filter($checkResult));
-                foreach ($menu as $navGroupKey => $navGroup) {
-                    if ($navGroup instanceof NavigationGroup) {
-
-                        $newNavGroup = $navGroup;
-
-                        $newNavGroup->items(
-                            collect($navGroup->getItems())
-                                ->filter(fn (NavigationItem $navItem) => in_array($navItem->getUrl(), $checkResult))
-                                ->values()
-                                ->toArray()
-                        );
-
-                        if (count($newNavGroup->getItems()) > 0) {
-                            $groups->put($navGroupKey, $newNavGroup);
-                        }
+                    if ($url !== null) {
+                        $urls[] = $url;
                     }
                 }
+            }
+
+            $urls = array_values(array_unique($urls));
+
+            $checkResult = Permission::checkPermission($urls);
+
+            if (! is_bool($checkResult)) {
+                $allowed = array_keys(array_filter($checkResult));
+
+                $filtered = [];
+
+                foreach ($groups as $navGroupKey => $navGroup) {
+                    $items = [];
+
+                    foreach (self::navigationItems($navGroup) as $navItem) {
+                        if (in_array($navItem->getUrl(), $allowed, true)) {
+                            $items[] = $navItem;
+                        }
+                    }
+
+                    if ($items === []) {
+                        continue;
+                    }
+
+                    $navGroup->items($items);
+                    $filtered[$navGroupKey] = $navGroup;
+                }
+
+                $groups = collect($filtered);
             }
         }
 
         // Ensure no icon for Navigation group
-        $groups->each(fn (NavigationGroup $navigationGroup) => $navigationGroup->icon(null));
+        $result = [];
 
-        return $groups->toArray();
+        foreach ($groups as $navigationGroup) {
+            $navigationGroup->icon(null);
+            $result[] = $navigationGroup;
+        }
+
+        return $result;
     }
 
     /**
@@ -270,7 +313,7 @@ class FilamentAccessManagement
     }
 
     /**
-     * @param  string[]|NavigationGroup[]  $groups
+     * @param  list<string|NavigationGroup>  $groups
      */
     public function registerNavigationGroups(array $groups): void
     {
@@ -278,18 +321,24 @@ class FilamentAccessManagement
     }
 
     /**
-     * @param  Navigation\NavigationItem[]  $items
+     * @param  list<NavigationItem>  $items
      */
     public function registerNavigationItems(array $items): void
     {
         $this->customNavigationItems = array_merge($items);
     }
 
+    /**
+     * @return list<string|NavigationGroup>
+     */
     public function getCustomNavigationGroups(): array
     {
         return $this->customNavigationGroups;
     }
 
+    /**
+     * @return list<NavigationItem>
+     */
     public function getCustomNavigationItems(): array
     {
         return $this->customNavigationItems;
@@ -301,6 +350,7 @@ class FilamentAccessManagement
     public function getCustomNavigation(): ?NavigationBuilder
     {
         [$groups, $items, $builder] = [$this->getCustomNavigationGroups(), $this->getCustomNavigationItems(), $this->navigationBuilder];
+
         if (empty($groups) && empty($items) && empty($builder)) {
             return null;
         }
@@ -309,15 +359,127 @@ class FilamentAccessManagement
 
         if ($builder) {
             try {
-                /** @var NavigationBuilder */
                 $result = $builder(app(NavigationBuilder::class));
+
+                if (! $result instanceof NavigationBuilder) {
+                    throw new Exception('Navigation builder must return a '.NavigationBuilder::class.' instance.');
+                }
             } catch (Throwable $e) {
                 throw new Exception(message: 'Failed to create navigation builder', previous: $e);
             }
         }
-        $result->groups(collect($groups)->map(fn (NavigationGroup|string $group) => $group instanceof NavigationGroup ? $group : NavigationGroup::make()->label($group))->toArray());
+
+        $result->groups(collect($groups)->map(
+            fn (string|NavigationGroup $group): NavigationGroup => $group instanceof NavigationGroup
+                ? $group
+                : NavigationGroup::make()->label($group)
+        )->all());
+
         $result->items($items);
 
         return $result;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function permissionAttributesFor(Authenticatable $user): array
+    {
+        $this->rememberUserPermissionCacheKey($user);
+
+        if (! method_exists($user, 'getAllPermissions')) {
+            return [];
+        }
+
+        $permissions = $user->getAllPermissions();
+
+        if (! ($permissions instanceof Collection || is_array($permissions))) {
+            return [];
+        }
+
+        return collect($permissions)
+            ->map(function (mixed $permission): array {
+                return method_exists($permission, 'getAttributes')
+                    ? $permission->getAttributes()
+                    : (array) $permission;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function rememberUserPermissionCacheKey(Authenticatable $user): void
+    {
+        $tags = Cache::get(Utils::getUserPermissionCacheTag());
+        $tags = is_array($tags) ? $tags : [];
+
+        $tags = collect($tags)
+            ->merge([Utils::getUserPermissionCacheKey($user)])
+            ->unique()
+            ->all();
+
+        Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $attributes
+     * @return Collection<int, \Spatie\Permission\Models\Permission>
+     */
+    private function hydratePermissions(array $attributes): Collection
+    {
+        $permissionModel = Utils::getPermissionModel();
+
+        return collect($attributes)->map(function (mixed $item) use ($permissionModel) {
+            $data = is_array($item) ? $item : (array) $item;
+
+            $permission = new $permissionModel;
+            $permission->setRawAttributes($data, true);
+            $permission->exists = true;
+
+            return $permission;
+        });
+    }
+
+    /**
+     * @param  array<string, string>  $permissions
+     * @return list<\Spatie\Permission\Models\Permission>
+     */
+    private function createPermissionModels(array $permissions): array
+    {
+        $result = [];
+
+        $permissionModel = Utils::getPermissionModel();
+
+        foreach ($permissions as $name => $httpPath) {
+            $permission = $permissionModel::query()->whereRaw('name = ?', [$name])->first();
+
+            if (! $permission instanceof \Spatie\Permission\Models\Permission) {
+                $permission = new $permissionModel;
+                $permission->setAttribute('name', $name);
+                $permission->setAttribute('http_path', $httpPath);
+                $permission->setAttribute('guard_name', Utils::getFilamentAuthGuard());
+                $permission->save();
+            }
+
+            $result[] = $permission;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array<int, NavigationItem>
+     */
+    private static function navigationItems(NavigationGroup $group): array
+    {
+        $items = $group->getItems();
+
+        if ($items instanceof Arrayable) {
+            $items = $items->toArray();
+        }
+
+        return array_values(array_filter(
+            $items,
+            fn (mixed $item): bool => $item instanceof NavigationItem
+        ));
     }
 }

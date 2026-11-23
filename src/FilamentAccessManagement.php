@@ -62,39 +62,23 @@ class FilamentAccessManagement
             return collect();
         }
 
+        $cacheKey = Utils::getUserPermissionCacheKey($user);
+
         $cached = Cache::remember(
-            Utils::getUserPermissionCacheKey($user),
+            $cacheKey,
             Utils::getUserPermissionCacheExpirationTime(),
-            function () use ($user): Collection {
-                $tags = Cache::get(Utils::getUserPermissionCacheTag());
-                $tags = is_array($tags) ? $tags : [];
-
-                $tags = collect($tags)
-                    ->merge([Utils::getUserPermissionCacheKey($user)])
-                    ->unique()
-                    ->all();
-
-                Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
-
-                if (! method_exists($user, 'getAllPermissions')) {
-                    return collect();
-                }
-
-                $permissions = $user->getAllPermissions();
-
-                if ($permissions instanceof Collection) {
-                    return $permissions;
-                }
-
-                if (is_array($permissions)) {
-                    return collect($permissions);
-                }
-
-                return collect();
-            }
+            fn (): array => $this->permissionAttributesFor($user)
         );
 
-        return $cached;
+        // Stale cache may unserialize as __PHP_Incomplete_Class when Eloquent
+        // models/collections were stored previously.
+        if (! is_array($cached)) {
+            Cache::forget($cacheKey);
+            $cached = $this->permissionAttributesFor($user);
+            Cache::put($cacheKey, $cached, Utils::getUserPermissionCacheExpirationTime());
+        }
+
+        return $this->hydratePermissions($cached);
     }
 
     public function clearPermissionCache(): void
@@ -394,6 +378,65 @@ class FilamentAccessManagement
         $result->items($items);
 
         return $result;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function permissionAttributesFor(Authenticatable $user): array
+    {
+        $this->rememberUserPermissionCacheKey($user);
+
+        if (! method_exists($user, 'getAllPermissions')) {
+            return [];
+        }
+
+        $permissions = $user->getAllPermissions();
+
+        if (! ($permissions instanceof Collection || is_array($permissions))) {
+            return [];
+        }
+
+        return collect($permissions)
+            ->map(function (mixed $permission): array {
+                return method_exists($permission, 'getAttributes')
+                    ? $permission->getAttributes()
+                    : (array) $permission;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function rememberUserPermissionCacheKey(Authenticatable $user): void
+    {
+        $tags = Cache::get(Utils::getUserPermissionCacheTag());
+        $tags = is_array($tags) ? $tags : [];
+
+        $tags = collect($tags)
+            ->merge([Utils::getUserPermissionCacheKey($user)])
+            ->unique()
+            ->all();
+
+        Cache::forever(Utils::getUserPermissionCacheTag(), $tags);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $attributes
+     * @return Collection<int, \Spatie\Permission\Models\Permission>
+     */
+    private function hydratePermissions(array $attributes): Collection
+    {
+        $permissionModel = Utils::getPermissionModel();
+
+        return collect($attributes)->map(function (mixed $item) use ($permissionModel) {
+            $data = is_array($item) ? $item : (array) $item;
+
+            $permission = new $permissionModel;
+            $permission->setRawAttributes($data, true);
+            $permission->exists = true;
+
+            return $permission;
+        });
     }
 
     /**
